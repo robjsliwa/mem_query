@@ -5,7 +5,11 @@ macro_rules! doc {
     //   "_id": 1,
     //   // ...$($json)+
     // })
-    serde_json::json!($($json)+)
+    {
+    let mut v = serde_json::json!($($json)+);
+    v["_id"] = serde_json::json!(1);
+    v
+    }
   };
 }
 
@@ -15,5 +19,6 @@ mod tests {
   fn test_adding_id() {
     let doc = doc!({ "name": "test", "value": 1 });
     assert_eq!(doc["_id"], 1);
+    println!("doc {}", doc);
   }
 }

@@ -18,11 +18,27 @@ const NIN: &str = "$nin";
 const AND: &str = "$and";
 const OR: &str = "$or";
 
-fn is_comparison_op(key: &str) -> bool {
-  match key {
-    EQ | GT | GTE | LT | LTE | NE | IN | NIN => true,
-    _ => false,
+fn has_comparison_op(compare_obj: &Value) -> (bool, &str, &Value) {
+  match compare_obj.as_object() {
+    Some(o) => {
+      if o.is_empty() || o.keys().len() > 1 {
+        return (false, "", &Value::Null);
+      }
+      for (key, val) in o.iter() {
+        return match &key[..] {
+          EQ | GT | GTE | LT | LTE | NE | IN | NIN => (true, key, val),
+          _ => (false, "", &Value::Null),
+        };
+      }
+      (false, "", &Value::Null)
+    }
+    None => return (false, "", &Value::Null),
   }
+}
+
+fn is_comparison_op(compare_obj: &Value) -> bool {
+  let (is_comp_op, _, _) = has_comparison_op(compare_obj);
+  is_comp_op
 }
 
 fn is_logical_op(key: &str) -> bool {
@@ -30,6 +46,10 @@ fn is_logical_op(key: &str) -> bool {
     AND | OR => true,
     _ => false,
   }
+}
+
+fn is_op(key: &str) -> bool {
+  key.starts_with("$")
 }
 
 fn all(logic_list: Vec<bool>) -> bool {
@@ -124,51 +144,156 @@ impl MemDb {
   fn perform_query(&self, query: &Value, document: &Value) -> Result<bool, Error> {
     let query_obj = query.as_object().unwrap();
     let mut is_found = false;
-    let mut compare_value = &Value::Null;
 
     for key in query_obj.keys() {
       let key_parts: Vec<&str> = key.split('.').collect();
       if key_parts.len() == 1 {
         if is_logical_op(key) {
-          let query_list = &query[key];
-          is_found = self.perform_logical_op(key, query_list, document)?;
+          let logical_op_list = &query[key];
+          is_found = self.perform_logical_op(key, logical_op_list, document)?;
           break;
-        } else if is_comparison_op(key) {
-          // TODO
+        } else if is_comparison_op(&query[key]) {
+          let (_, op, comp_value) = has_comparison_op(&query[key]);
+          is_found = self.perform_comparison_op(op, comp_value, &document[key])?;
+          continue;
+        } else if is_op(key) {
+          // all valid ops should have been processed, so this must be unsupported op
+          return Err(Error::MQInvalidOp(key.to_string()));
         } else {
-          compare_value = &document[key];
+          is_found = &query[key] == &document[key];
+          if !is_found {
+            break;
+          }
         }
       } else {
-        // TODO: nested objects
-      }
-
-      if &query[key] == compare_value {
-        is_found = true;
-      } else {
-        is_found = false;
-        break;
+        let nested_value = self.get_nested_document_value(key_parts, document)?;
+        if is_comparison_op(&query[key]) {
+          let (_, op, comp_value) = has_comparison_op(&query[key]);
+          is_found = self.perform_comparison_op(op, comp_value, nested_value)?;
+          continue;
+        } else {
+          is_found = &query[key] == nested_value;
+          if !is_found {
+            break;
+          }
+        }
       }
     }
 
     Ok(is_found)
   }
 
-  fn perform_logical_op(&self, op: &str, query: &Value, document: &Value) -> Result<bool, Error> {
-    let query_list = match query.as_array() {
+  fn perform_logical_op(
+    &self,
+    op: &str,
+    logical_op_list: &Value,
+    document: &Value,
+  ) -> Result<bool, Error> {
+    let op_list = match logical_op_list.as_array() {
       Some(l) => l,
       None => return Err(Error::MQError(String::from("Logical operation"))),
     };
 
     let mut op_success_list: Vec<bool> = Vec::new();
 
-    for query in query_list {
-      op_success_list.push(self.perform_query(query, document)?);
+    for op_query in op_list {
+      op_success_list.push(self.perform_query(op_query, document)?);
     }
     Ok(match op {
       OR => any(op_success_list),
       AND => all(op_success_list),
       _ => false,
     })
+  }
+
+  fn perform_comparison_op(
+    &self,
+    op: &str,
+    compare_to_value: &Value,
+    doc_value: &Value,
+  ) -> Result<bool, Error> {
+    match op {
+      GT | GTE | LT | LTE | NE | EQ => self.perform_value_compares(op, compare_to_value, doc_value),
+      IN | NIN => Ok(false),
+      _ => Err(Error::MQInvalidOp(op.to_string())),
+    }
+  }
+
+  fn perform_value_compares(
+    &self,
+    op: &str,
+    compare_to_value: &Value,
+    doc_value: &Value,
+  ) -> Result<bool, Error> {
+    if compare_to_value.is_array() || compare_to_value.is_object() {
+      return Err(Error::MQInvalidValue(format!(
+        "{} expects value not array or object.",
+        op
+      )));
+    }
+
+    match (doc_value, compare_to_value) {
+      (Value::Number(d), Value::Number(c)) => {
+        if let Some(doc_u) = d.as_u64() {
+          if let Some(comp_u) = c.as_u64() {
+            return Ok(self.compare(op, doc_u, comp_u));
+          }
+        } else if let Some(doc_i) = d.as_i64() {
+          if let Some(comp_i) = d.as_i64() {
+            return Ok(self.compare(op, doc_i, comp_i));
+          }
+        } else if let Some(doc_f) = d.as_f64() {
+          if let Some(comp_f) = d.as_f64() {
+            return Ok(self.compare(op, doc_f, comp_f));
+          }
+        }
+      }
+      (Value::String(d), Value::String(c)) => return Ok(self.compare(op, d, c)),
+      _ => return Err(Error::MQInvalidType),
+    }
+
+    Err(Error::MQInvalidType)
+  }
+
+  fn compare<T: PartialOrd>(&self, op: &str, d: T, c: T) -> bool {
+    match op {
+      GT => d > c,
+      GTE => d >= c,
+      LT => d < c,
+      LTE => d <= c,
+      NE => d != c,
+      EQ => d == c,
+      _ => false,
+    }
+  }
+
+  fn perform_array_compares(
+    &self,
+    op: &str,
+    compare_value: &Value,
+    document: &Value,
+  ) -> Result<bool, Error> {
+    Ok(false)
+  }
+
+  fn get_nested_document_value<'a>(
+    &self,
+    nested_keys: Vec<&str>,
+    document: &'a Value,
+  ) -> Result<&'a Value, Error> {
+    let mut current_value: &Value = document;
+
+    for key in nested_keys {
+      if is_op(key) {
+        return Err(Error::MQInvalidOp(format!(
+          "{} operators not allowed in nested paths.",
+          key
+        )));
+      }
+      current_value = &current_value[key];
+    }
+
+    Ok(current_value)
   }
 }
 
@@ -211,6 +336,7 @@ mod tests {
     memdb.insert("TestCollection", doc!({ "name": "Rob", "age": 25 }))?;
     memdb.insert("TestCollection", doc!({ "name": "Bob", "age": 20 }))?;
     memdb.insert("TestCollection", doc!({ "name": "Tom", "age": 30 }))?;
+    memdb.insert("TestCollection", doc!({ "name": "Victor", "age": 20 }))?;
 
     let docs = memdb.find("TestCollection", query!({"name": "Bob", "age": 20}))?;
 
@@ -299,6 +425,105 @@ mod tests {
     )?;
 
     assert_eq!(docs.len(), 0);
+    Ok(())
+  }
+
+  #[test]
+  fn test_eq_op() -> Result<(), Error> {
+    let memdb = MemDb::new();
+    memdb.create_collection("TestCollection");
+    memdb.insert(
+      "TestCollection",
+      doc!({ "item": { "name": "ab", "code": "123" }, "qty": 15, "tags": [ "A", "B", "C" ] }),
+    )?;
+    memdb.insert(
+      "TestCollection",
+      doc!({ "item": { "name": "cd", "code": "123" }, "qty": 20, "tags": [ "B" ] }),
+    )?;
+    memdb.insert(
+      "TestCollection",
+      doc!({ "item": { "name": "ij", "code": "456" }, "qty": 25, "tags": [ "A", "B" ] }),
+    )?;
+    memdb.insert(
+      "TestCollection",
+      doc!({ "item": { "name": "xy", "code": "456" }, "qty": 30, "tags": [ "B", "A" ] }),
+    )?;
+    memdb.insert(
+      "TestCollection",
+      doc!({ "item": { "name": "mn", "code": "000" }, "qty": 20, "tags": [ [ "A", "B" ], "C" ] }),
+    )?;
+
+    let docs = memdb.find("TestCollection", query!({ "qty": { "$eq": 20 } }))?;
+
+    assert_eq!(docs.len(), 2);
+    assert_eq!(docs[0]["item"]["name"], "cd");
+    assert_eq!(docs[1]["item"]["name"], "mn");
+
+    Ok(())
+  }
+
+  #[test]
+  fn test_eq_nomatch_op() -> Result<(), Error> {
+    let memdb = MemDb::new();
+    memdb.create_collection("TestCollection");
+    memdb.insert(
+      "TestCollection",
+      doc!({ "item": { "name": "ab", "code": "123" }, "qty": 15, "tags": [ "A", "B", "C" ] }),
+    )?;
+    memdb.insert(
+      "TestCollection",
+      doc!({ "item": { "name": "cd", "code": "123" }, "qty": 20, "tags": [ "B" ] }),
+    )?;
+    memdb.insert(
+      "TestCollection",
+      doc!({ "item": { "name": "ij", "code": "456" }, "qty": 25, "tags": [ "A", "B" ] }),
+    )?;
+    memdb.insert(
+      "TestCollection",
+      doc!({ "item": { "name": "xy", "code": "456" }, "qty": 30, "tags": [ "B", "A" ] }),
+    )?;
+    memdb.insert(
+      "TestCollection",
+      doc!({ "item": { "name": "mn", "code": "000" }, "qty": 20, "tags": [ [ "A", "B" ], "C" ] }),
+    )?;
+
+    let docs = memdb.find("TestCollection", query!({ "qty": { "$eq": 200 } }))?;
+
+    assert_eq!(docs.len(), 0);
+
+    Ok(())
+  }
+
+  #[test]
+  fn test_eq_op_single_entry_embedded_doc() -> Result<(), Error> {
+    let memdb = MemDb::new();
+    memdb.create_collection("TestCollection");
+    memdb.insert(
+      "TestCollection",
+      doc!({ "item": { "name": "ab", "code": "123" }, "qty": 15, "tags": [ "A", "B", "C" ] }),
+    )?;
+    memdb.insert(
+      "TestCollection",
+      doc!({ "item": { "name": "cd", "code": "123" }, "qty": 20, "tags": [ "B" ] }),
+    )?;
+    memdb.insert(
+      "TestCollection",
+      doc!({ "item": { "name": "ij", "code": "456" }, "qty": 25, "tags": [ "A", "B" ] }),
+    )?;
+    memdb.insert(
+      "TestCollection",
+      doc!({ "item": { "name": "xy", "code": "456" }, "qty": 30, "tags": [ "B", "A" ] }),
+    )?;
+    memdb.insert(
+      "TestCollection",
+      doc!({ "item": { "name": "mn", "code": "000" }, "qty": 20, "tags": [ [ "A", "B" ], "C" ] }),
+    )?;
+
+    let docs = memdb.find("TestCollection", query!({ "item.name": { "$eq": "ab" } }))?;
+
+    assert_eq!(docs.len(), 1);
+    assert_eq!(docs[0]["item"]["name"], "ab");
+
     Ok(())
   }
 }

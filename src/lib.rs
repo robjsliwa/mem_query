@@ -225,7 +225,7 @@ impl MemDb {
     compare_to_value: &Value,
     doc_value: &Value,
   ) -> Result<bool, Error> {
-    if compare_to_value.is_array() || compare_to_value.is_object() {
+    if compare_to_value.is_object() {
       return Err(Error::MQInvalidValue(format!(
         "{} expects value not array or object.",
         op
@@ -236,44 +236,96 @@ impl MemDb {
       (Value::Number(d), Value::Number(c)) => {
         if let Some(doc_u) = d.as_u64() {
           if let Some(comp_u) = c.as_u64() {
-            return Ok(self.compare(op, doc_u, comp_u));
+            return self.compare(op, doc_u, comp_u);
           }
         } else if let Some(doc_i) = d.as_i64() {
           if let Some(comp_i) = d.as_i64() {
-            return Ok(self.compare(op, doc_i, comp_i));
+            return self.compare(op, doc_i, comp_i);
           }
         } else if let Some(doc_f) = d.as_f64() {
           if let Some(comp_f) = d.as_f64() {
-            return Ok(self.compare(op, doc_f, comp_f));
+            return self.compare(op, doc_f, comp_f);
           }
         }
       }
-      (Value::String(d), Value::String(c)) => return Ok(self.compare(op, d, c)),
+      (Value::String(d), Value::String(c)) => return self.compare(op, d, c),
+      (Value::Array(d), Value::Array(c)) => {
+        return self.perform_array_to_array_compare(op, d, c);
+      }
+      (Value::Array(d), Value::Number(c)) => {
+        return self.perform_array_to_value_compare(op, d, &serde_json::json!(c));
+      }
+      (Value::Array(d), Value::String(c)) => {
+        return self.perform_array_to_value_compare(op, d, &serde_json::json!(c))
+      }
       _ => return Err(Error::MQInvalidType),
     }
 
     Err(Error::MQInvalidType)
   }
 
-  fn compare<T: PartialOrd>(&self, op: &str, d: T, c: T) -> bool {
-    match op {
+  fn compare<T: PartialOrd>(&self, op: &str, d: T, c: T) -> Result<bool, Error> {
+    Ok(match op {
       GT => d > c,
       GTE => d >= c,
       LT => d < c,
       LTE => d <= c,
       NE => d != c,
       EQ => d == c,
-      _ => false,
-    }
+      _ => {
+        return Err(Error::MQInvalidOp(format!(
+          "{} not supported for compare.",
+          op
+        )))
+      }
+    })
   }
 
-  fn perform_array_compares(
+  fn perform_array_to_array_compare(
     &self,
     op: &str,
-    compare_value: &Value,
-    document: &Value,
+    document_value: &Vec<Value>,
+    compare_value: &Vec<Value>,
   ) -> Result<bool, Error> {
-    Ok(false)
+    if document_value == compare_value {
+      return Ok(true);
+    }
+
+    let mut matches: Vec<bool> = Vec::new();
+    for elem in document_value {
+      let is_match = match op {
+        NE => elem != &serde_json::json!(compare_value),
+        EQ => elem == &serde_json::json!(compare_value),
+        GT | GTE | LT | LTE | _ => {
+          return Err(Error::MQInvalidOp(format!(
+            "{} is not valid for array comparison.",
+            op
+          )));
+        }
+      };
+      matches.push(is_match);
+    }
+
+    Ok(any(matches))
+  }
+
+  fn perform_array_to_value_compare(
+    &self,
+    op: &str,
+    document_value: &Vec<Value>,
+    compare_value: &Value,
+  ) -> Result<bool, Error> {
+    let mut matches: Vec<bool> = Vec::new();
+    for elem in document_value {
+      let mut is_match = false;
+      if !elem.is_array() {
+        // do not check nested arrays
+        is_match = self.perform_value_compares(op, compare_value, elem)?
+      }
+      matches.push(is_match);
+    }
+
+    Ok(any(matches))
   }
 
   fn get_nested_document_value<'a>(
@@ -523,6 +575,148 @@ mod tests {
 
     assert_eq!(docs.len(), 1);
     assert_eq!(docs[0]["item"]["name"], "ab");
+
+    Ok(())
+  }
+
+  #[test]
+  fn test_eq_op_to_match_array_to_array() -> Result<(), Error> {
+    let memdb = MemDb::new();
+    memdb.create_collection("TestCollection");
+    memdb.insert(
+      "TestCollection",
+      doc!({ "item": { "name": "ab", "code": "123" }, "qty": 15, "tags": [ "A", "B", "C" ] }),
+    )?;
+    memdb.insert(
+      "TestCollection",
+      doc!({ "item": { "name": "cd", "code": "123" }, "qty": 20, "tags": [ "B" ] }),
+    )?;
+    memdb.insert(
+      "TestCollection",
+      doc!({ "item": { "name": "ij", "code": "456" }, "qty": 25, "tags": [ "A", "B" ] }),
+    )?;
+    memdb.insert(
+      "TestCollection",
+      doc!({ "item": { "name": "xy", "code": "456" }, "qty": 30, "tags": [ "B", "A" ] }),
+    )?;
+    memdb.insert(
+      "TestCollection",
+      doc!({ "item": { "name": "mn", "code": "000" }, "qty": 20, "tags": [ [ "A", "B" ], "C" ] }),
+    )?;
+
+    let docs = memdb.find(
+      "TestCollection",
+      query!({ "tags": { "$eq": [ "A", "B"  ] } }),
+    )?;
+
+    assert_eq!(docs.len(), 2);
+    assert_eq!(docs[0]["item"]["name"], "ij");
+    assert_eq!(docs[1]["item"]["name"], "mn");
+
+    Ok(())
+  }
+
+  #[test]
+  fn test_eq_op_to_nomatch_array_to_array() -> Result<(), Error> {
+    let memdb = MemDb::new();
+    memdb.create_collection("TestCollection");
+    memdb.insert(
+      "TestCollection",
+      doc!({ "item": { "name": "ab", "code": "123" }, "qty": 15, "tags": [ "A", "B", "C" ] }),
+    )?;
+    memdb.insert(
+      "TestCollection",
+      doc!({ "item": { "name": "cd", "code": "123" }, "qty": 20, "tags": [ "B" ] }),
+    )?;
+    memdb.insert(
+      "TestCollection",
+      doc!({ "item": { "name": "ij", "code": "456" }, "qty": 25, "tags": [ "A", "B" ] }),
+    )?;
+    memdb.insert(
+      "TestCollection",
+      doc!({ "item": { "name": "xy", "code": "456" }, "qty": 30, "tags": [ "B", "A" ] }),
+    )?;
+    memdb.insert(
+      "TestCollection",
+      doc!({ "item": { "name": "mn", "code": "000" }, "qty": 20, "tags": [ [ "A", "B" ], "C" ] }),
+    )?;
+
+    let docs = memdb.find(
+      "TestCollection",
+      query!({ "tags": { "$eq": [ "C", "D"  ] } }),
+    )?;
+
+    assert_eq!(docs.len(), 0);
+
+    Ok(())
+  }
+
+  #[test]
+  fn test_eq_op_to_match_array_to_value() -> Result<(), Error> {
+    let memdb = MemDb::new();
+    memdb.create_collection("TestCollection");
+    memdb.insert(
+      "TestCollection",
+      doc!({ "item": { "name": "ab", "code": "123" }, "qty": 15, "tags": [ "A", "B", "C" ] }),
+    )?;
+    memdb.insert(
+      "TestCollection",
+      doc!({ "item": { "name": "cd", "code": "123" }, "qty": 20, "tags": [ "B" ] }),
+    )?;
+    memdb.insert(
+      "TestCollection",
+      doc!({ "item": { "name": "ij", "code": "456" }, "qty": 25, "tags": [ "A", "B" ] }),
+    )?;
+    memdb.insert(
+      "TestCollection",
+      doc!({ "item": { "name": "xy", "code": "456" }, "qty": 30, "tags": [ "B", "A" ] }),
+    )?;
+    memdb.insert(
+      "TestCollection",
+      doc!({ "item": { "name": "mn", "code": "000" }, "qty": 20, "tags": [ [ "A", "B" ], "C" ] }),
+    )?;
+
+    let docs = memdb.find("TestCollection", query!({ "tags": { "$eq": "B" } }))?;
+
+    assert_eq!(docs.len(), 4);
+    assert_eq!(docs[0]["item"]["name"], "ab");
+    assert_eq!(docs[1]["item"]["name"], "cd");
+    assert_eq!(docs[2]["item"]["name"], "ij");
+    assert_eq!(docs[3]["item"]["name"], "xy");
+
+    Ok(())
+  }
+
+  #[test]
+  fn test_gt_match() -> Result<(), Error> {
+    let memdb = MemDb::new();
+    memdb.create_collection("TestCollection");
+    memdb.insert(
+      "TestCollection",
+      doc!({ "item": { "name": "ab", "code": "123" }, "qty": 15, "tags": [ "A", "B", "C" ] }),
+    )?;
+    memdb.insert(
+      "TestCollection",
+      doc!({ "item": { "name": "cd", "code": "123" }, "qty": 20, "tags": [ "B" ] }),
+    )?;
+    memdb.insert(
+      "TestCollection",
+      doc!({ "item": { "name": "ij", "code": "456" }, "qty": 25, "tags": [ "A", "B" ] }),
+    )?;
+    memdb.insert(
+      "TestCollection",
+      doc!({ "item": { "name": "xy", "code": "456" }, "qty": 30, "tags": [ "B", "A" ] }),
+    )?;
+    memdb.insert(
+      "TestCollection",
+      doc!({ "item": { "name": "mn", "code": "000" }, "qty": 20, "tags": [ [ "A", "B" ], "C" ] }),
+    )?;
+
+    let docs = memdb.find("TestCollection", query!({ "qty": { "$gt": 20 } }))?;
+
+    assert_eq!(docs.len(), 2);
+    assert_eq!(docs[0]["item"]["name"], "ij");
+    assert_eq!(docs[1]["item"]["name"], "xy");
 
     Ok(())
   }

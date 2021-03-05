@@ -386,3 +386,341 @@ fn test_gt_no_match() -> Result<(), Error> {
 
   Ok(())
 }
+
+#[test]
+fn test_gt_match_embedded_doc() -> Result<(), Error> {
+  let memdb = MemDb::new();
+  memdb.create_collection("TestCollection");
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "ab", "code": 123 }, "qty": 15, "tags": [ "A", "B", "C" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "cd", "code": 123 }, "qty": 20, "tags": [ "B" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "ij", "code": 456 }, "qty": 25, "tags": [ "A", "B" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "xy", "code": 456 }, "qty": 30, "tags": [ "B", "A" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "mn", "code": 000 }, "qty": 20, "tags": [ [ "A", "B" ], "C" ] }),
+  )?;
+
+  let docs = memdb.find("TestCollection", query!({ "item.code": { "$gt": 400 } }))?;
+
+  assert_eq!(docs.len(), 2);
+  assert_eq!(docs[0]["item"]["name"], "ij");
+  assert_eq!(docs[1]["item"]["name"], "xy");
+
+  Ok(())
+}
+
+#[test]
+fn test_gte_match() -> Result<(), Error> {
+  let memdb = MemDb::new();
+  memdb.create_collection("TestCollection");
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "ab", "code": "123" }, "qty": 15, "tags": [ "A", "B", "C" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "cd", "code": "123" }, "qty": 20, "tags": [ "B" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "ij", "code": "456" }, "qty": 25, "tags": [ "A", "B" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "xy", "code": "456" }, "qty": 30, "tags": [ "B", "A" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "mn", "code": "000" }, "qty": 20, "tags": [ [ "A", "B" ], "C" ] }),
+  )?;
+
+  let docs = memdb.find("TestCollection", query!({ "qty": { "$gte": 20 } }))?;
+
+  assert_eq!(docs.len(), 4);
+  assert_eq!(docs[0]["item"]["name"], "cd");
+  assert_eq!(docs[1]["item"]["name"], "ij");
+  assert_eq!(docs[2]["item"]["name"], "xy");
+  assert_eq!(docs[3]["item"]["name"], "mn");
+
+  Ok(())
+}
+
+#[test]
+fn test_gte_no_match() -> Result<(), Error> {
+  let memdb = MemDb::new();
+  memdb.create_collection("TestCollection");
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "ab", "code": "123" }, "qty": 15, "tags": [ "A", "B", "C" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "cd", "code": "123" }, "qty": 20, "tags": [ "B" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "ij", "code": "456" }, "qty": 25, "tags": [ "A", "B" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "xy", "code": "456" }, "qty": 30, "tags": [ "B", "A" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "mn", "code": "000" }, "qty": 20, "tags": [ [ "A", "B" ], "C" ] }),
+  )?;
+
+  let docs = memdb.find("TestCollection", query!({ "qty": { "$gte": 200 } }))?;
+
+  assert_eq!(docs.len(), 0);
+
+  Ok(())
+}
+
+#[test]
+fn test_gte_match_embedded_doc() -> Result<(), Error> {
+  let memdb = MemDb::new();
+  memdb.create_collection("TestCollection");
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "ab", "code": 123 }, "qty": 15, "tags": [ "A", "B", "C" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "cd", "code": 123 }, "qty": 20, "tags": [ "B" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "ij", "code": 456 }, "qty": 25, "tags": [ "A", "B" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "xy", "code": 456 }, "qty": 30, "tags": [ "B", "A" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "mn", "code": 000 }, "qty": 20, "tags": [ [ "A", "B" ], "C" ] }),
+  )?;
+
+  let docs = memdb.find("TestCollection", query!({ "item.code": { "$gte": 456 } }))?;
+
+  assert_eq!(docs.len(), 2);
+  assert_eq!(docs[0]["item"]["name"], "ij");
+  assert_eq!(docs[1]["item"]["name"], "xy");
+
+  Ok(())
+}
+
+#[test]
+fn test_lt_match() -> Result<(), Error> {
+  let memdb = MemDb::new();
+  memdb.create_collection("TestCollection");
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "ab", "code": "123" }, "qty": 15, "tags": [ "A", "B", "C" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "cd", "code": "123" }, "qty": 20, "tags": [ "B" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "ij", "code": "456" }, "qty": 25, "tags": [ "A", "B" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "xy", "code": "456" }, "qty": 30, "tags": [ "B", "A" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "mn", "code": "000" }, "qty": 20, "tags": [ [ "A", "B" ], "C" ] }),
+  )?;
+
+  let docs = memdb.find("TestCollection", query!({ "qty": { "$lt": 20 } }))?;
+
+  assert_eq!(docs.len(), 1);
+  assert_eq!(docs[0]["item"]["name"], "ab");
+
+  Ok(())
+}
+
+#[test]
+fn test_lt_no_match() -> Result<(), Error> {
+  let memdb = MemDb::new();
+  memdb.create_collection("TestCollection");
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "ab", "code": "123" }, "qty": 15, "tags": [ "A", "B", "C" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "cd", "code": "123" }, "qty": 20, "tags": [ "B" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "ij", "code": "456" }, "qty": 25, "tags": [ "A", "B" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "xy", "code": "456" }, "qty": 30, "tags": [ "B", "A" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "mn", "code": "000" }, "qty": 20, "tags": [ [ "A", "B" ], "C" ] }),
+  )?;
+
+  let docs = memdb.find("TestCollection", query!({ "qty": { "$lt": 2 } }))?;
+
+  assert_eq!(docs.len(), 0);
+
+  Ok(())
+}
+
+#[test]
+fn test_lt_match_embedded_doc() -> Result<(), Error> {
+  let memdb = MemDb::new();
+  memdb.create_collection("TestCollection");
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "ab", "code": 123 }, "qty": 15, "tags": [ "A", "B", "C" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "cd", "code": 123 }, "qty": 20, "tags": [ "B" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "ij", "code": 456 }, "qty": 25, "tags": [ "A", "B" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "xy", "code": 456 }, "qty": 30, "tags": [ "B", "A" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "mn", "code": 000 }, "qty": 20, "tags": [ [ "A", "B" ], "C" ] }),
+  )?;
+
+  let docs = memdb.find("TestCollection", query!({ "item.code": { "$lt": 400 } }))?;
+
+  assert_eq!(docs.len(), 3);
+  assert_eq!(docs[0]["item"]["name"], "ab");
+  assert_eq!(docs[1]["item"]["name"], "cd");
+  assert_eq!(docs[2]["item"]["name"], "mn");
+
+  Ok(())
+}
+
+#[test]
+fn test_lte_match() -> Result<(), Error> {
+  let memdb = MemDb::new();
+  memdb.create_collection("TestCollection");
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "ab", "code": "123" }, "qty": 15, "tags": [ "A", "B", "C" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "cd", "code": "123" }, "qty": 20, "tags": [ "B" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "ij", "code": "456" }, "qty": 25, "tags": [ "A", "B" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "xy", "code": "456" }, "qty": 30, "tags": [ "B", "A" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "mn", "code": "000" }, "qty": 20, "tags": [ [ "A", "B" ], "C" ] }),
+  )?;
+
+  let docs = memdb.find("TestCollection", query!({ "qty": { "$lte": 20 } }))?;
+
+  assert_eq!(docs.len(), 3);
+  assert_eq!(docs[0]["item"]["name"], "ab");
+  assert_eq!(docs[1]["item"]["name"], "cd");
+  assert_eq!(docs[2]["item"]["name"], "mn");
+
+  Ok(())
+}
+
+#[test]
+fn test_lte_no_match() -> Result<(), Error> {
+  let memdb = MemDb::new();
+  memdb.create_collection("TestCollection");
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "ab", "code": "123" }, "qty": 15, "tags": [ "A", "B", "C" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "cd", "code": "123" }, "qty": 20, "tags": [ "B" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "ij", "code": "456" }, "qty": 25, "tags": [ "A", "B" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "xy", "code": "456" }, "qty": 30, "tags": [ "B", "A" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "mn", "code": "000" }, "qty": 20, "tags": [ [ "A", "B" ], "C" ] }),
+  )?;
+
+  let docs = memdb.find("TestCollection", query!({ "qty": { "$lte": 2 } }))?;
+
+  assert_eq!(docs.len(), 0);
+
+  Ok(())
+}
+
+#[test]
+fn test_lte_match_embedded_doc() -> Result<(), Error> {
+  let memdb = MemDb::new();
+  memdb.create_collection("TestCollection");
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "ab", "code": 123 }, "qty": 15, "tags": [ "A", "B", "C" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "cd", "code": 123 }, "qty": 20, "tags": [ "B" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "ij", "code": 456 }, "qty": 25, "tags": [ "A", "B" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "xy", "code": 456 }, "qty": 30, "tags": [ "B", "A" ] }),
+  )?;
+  memdb.insert(
+    "TestCollection",
+    doc!({ "item": { "name": "mn", "code": 000 }, "qty": 20, "tags": [ [ "A", "B" ], "C" ] }),
+  )?;
+
+  let docs = memdb.find("TestCollection", query!({ "item.code": { "$lte": 123 } }))?;
+
+  assert_eq!(docs.len(), 3);
+  assert_eq!(docs[0]["item"]["name"], "ab");
+  assert_eq!(docs[1]["item"]["name"], "cd");
+  assert_eq!(docs[2]["item"]["name"], "mn");
+
+  Ok(())
+}

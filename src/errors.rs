@@ -20,6 +20,9 @@ pub enum Error {
   #[error("Collection Not Found")]
   MQCollectionNotFound,
 
+  #[error("Ops In Multipart Key Not Allowed")]
+  MQOpNotAllowedInMultipartKey,
+
   #[error(transparent)]
   IOError(#[from] std::io::Error),
 }

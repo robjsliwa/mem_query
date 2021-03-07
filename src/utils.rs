@@ -53,3 +53,12 @@ pub fn all(logic_list: Vec<bool>) -> bool {
 pub fn any(logic_list: Vec<bool>) -> bool {
   logic_list.iter().any(|b| *b)
 }
+
+pub fn is_embedded_query(key: &str) -> (bool, Vec<&str>) {
+  let key_parts: Vec<&str> = key.split('.').collect();
+  let is_embedded = match key_parts.len() {
+    1 => false,
+    _ => true,
+  };
+  (is_embedded, key_parts)
+}

@@ -3,6 +3,20 @@ use serde_json::Value;
 
 pub type Documents = Vec<Value>;
 
+fn is_key_valid_op(key: &str) -> Result<(), Error> {
+  // if key contains op check if it is valid
+  let (is_embedded, _) = is_embedded_query(key);
+  if is_embedded && key.contains("$") {
+    return Err(Error::MQOpNotAllowedInMultipartKey);
+  }
+
+  if is_op(key) && !matches!(key, EQ | GT | GTE | LT | LTE | NE | IN | NIN | AND | OR) {
+    return Err(Error::MQInvalidOp(format!("Op {} is not supported.", key)));
+  }
+
+  Ok(())
+}
+
 pub struct Engine<'a> {
   docs: &'a Documents,
 }
@@ -23,41 +37,36 @@ impl<'a> Engine<'a> {
     Ok(result)
   }
 
+  fn get_document_value<'d>(&self, key: &str, document: &'d Value) -> Result<&'d Value, Error> {
+    // find if the value should be the immediate value of the key or embedded document
+    let (is_embedded, key_parts) = is_embedded_query(key);
+    let mut doc_value = &document[key];
+    if is_embedded {
+      doc_value = self.get_nested_document_value(key_parts, document)?;
+    }
+
+    Ok(doc_value)
+  }
+
   fn perform_query(&self, query: &Value, document: &Value) -> Result<bool, Error> {
     let query_obj = query.as_object().unwrap();
     let mut is_found = false;
 
     for key in query_obj.keys() {
-      let key_parts: Vec<&str> = key.split('.').collect();
-      if key_parts.len() == 1 {
-        if is_logical_op(key) {
-          let logical_op_list = &query[key];
-          is_found = self.perform_logical_op(key, logical_op_list, document)?;
-          break;
-        } else if is_comparison_op(&query[key]) {
-          let (_, op, comp_value) = has_comparison_op(&query[key]);
-          is_found = self.perform_comparison_op(op, comp_value, &document[key])?;
-          continue;
-        } else if is_op(key) {
-          // all valid ops should have been processed, so this must be unsupported op
-          return Err(Error::MQInvalidOp(key.to_string()));
-        } else {
-          is_found = &query[key] == &document[key];
-          if !is_found {
-            break;
-          }
-        }
+      is_key_valid_op(key)?;
+      if is_logical_op(key) {
+        let logical_op_list = &query[key];
+        is_found = self.perform_logical_op(key, logical_op_list, document)?;
+        break;
+      } else if is_comparison_op(&query[key]) {
+        let (_, op, comp_value) = has_comparison_op(&query[key]);
+        is_found =
+          self.perform_comparison_op(op, comp_value, self.get_document_value(key, document)?)?;
+        continue;
       } else {
-        let nested_value = self.get_nested_document_value(key_parts, document)?;
-        if is_comparison_op(&query[key]) {
-          let (_, op, comp_value) = has_comparison_op(&query[key]);
-          is_found = self.perform_comparison_op(op, comp_value, nested_value)?;
-          continue;
-        } else {
-          is_found = &query[key] == nested_value;
-          if !is_found {
-            break;
-          }
+        is_found = &query[key] == self.get_document_value(key, document)?;
+        if !is_found {
+          break;
         }
       }
     }

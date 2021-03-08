@@ -3,8 +3,7 @@ use super::{
   errors::Error,
 };
 use serde_json::Value;
-use std::sync::Arc;
-use tokio::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 type DocumentCollection = Arc<Mutex<Vec<Value>>>;
 
@@ -20,23 +19,23 @@ impl Collection {
     }
   }
 
-  pub async fn insert(&self, document: Value) -> Result<(), Error> {
+  pub fn insert(&self, document: Value) -> Result<(), Error> {
     if !document.is_object() {
       return Err(Error::MQError(String::from(
         "Document must be a JSON object.",
       )));
     }
 
-    self.data.lock().await.push(document);
+    self.data.lock().unwrap().push(document);
 
     Ok(())
   }
 
-  pub async fn find(&self, query: Value) -> Result<Documents, Error> {
+  pub fn find(&self, query: Value) -> Result<Documents, Error> {
     if !query.is_object() {
       return Err(Error::MQError(String::from("Query must be a JSON object.")));
     }
 
-    Engine::with_collection(&*self.data.lock().await).find(&query)
+    Engine::with_collection(&*self.data.lock().unwrap()).find(&query)
   }
 }

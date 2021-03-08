@@ -1,8 +1,19 @@
 [package]
 name = "memquery"
 version = "0.1.0"
-authors = ["robsliwa"]
+authors = ["Rob Sliwa <robjsliwa@gmail.com>"]
 edition = "2018"
+description = "MemQuery is simple library for creating, querying, and updating in memory documents that are represented as JSON objects and queried using Mongodb like operators."
+readme = "README.md"
+repository = "https://github.com/robjsliwa/mem_query"
+license = "MIT"
+keywords = ["inmemory", "query", "database", "json", "nosql"]
+
+exclude = [
+    ".gitignore",
+    ".editorconfig",
+    "tests/**"
+]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

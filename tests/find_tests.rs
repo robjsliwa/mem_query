@@ -1,6 +1,8 @@
+#[cfg(not(feature = "sync"))]
 use memquery::{doc, errors::Error, memdb::MemDb, query};
 
 #[tokio::test]
+#[cfg(not(feature = "sync"))]
 async fn test_simple_query() -> Result<(), Error> {
   let memdb = MemDb::new();
   memdb.create_collection("TestCollection").await;
@@ -17,6 +19,7 @@ async fn test_simple_query() -> Result<(), Error> {
 }
 
 #[tokio::test]
+#[cfg(not(feature = "sync"))]
 async fn test_simple_query_with_multiple_conditions() -> Result<(), Error> {
   let memdb = MemDb::new();
   memdb.create_collection("TestCollection").await;
@@ -34,6 +37,7 @@ async fn test_simple_query_with_multiple_conditions() -> Result<(), Error> {
 }
 
 #[tokio::test]
+#[cfg(not(feature = "sync"))]
 async fn test_nomatch_query_with_multiple_conditions() -> Result<(), Error> {
   let memdb = MemDb::new();
   memdb.create_collection("TestCollection").await;
@@ -49,6 +53,7 @@ async fn test_nomatch_query_with_multiple_conditions() -> Result<(), Error> {
 }
 
 #[tokio::test]
+#[cfg(not(feature = "sync"))]
 async fn test_query_match_with_and() -> Result<(), Error> {
   let memdb = MemDb::new();
   memdb.create_collection("TestCollection").await;
@@ -67,6 +72,7 @@ async fn test_query_match_with_and() -> Result<(), Error> {
 }
 
 #[tokio::test]
+#[cfg(not(feature = "sync"))]
 async fn test_query_nomatch_with_and() -> Result<(), Error> {
   let memdb = MemDb::new();
   memdb.create_collection("TestCollection").await;
@@ -84,6 +90,7 @@ async fn test_query_nomatch_with_and() -> Result<(), Error> {
 }
 
 #[tokio::test]
+#[cfg(not(feature = "sync"))]
 async fn test_query_match_with_or() -> Result<(), Error> {
   let memdb = MemDb::new();
   memdb.create_collection("TestCollection").await;
@@ -101,6 +108,7 @@ async fn test_query_match_with_or() -> Result<(), Error> {
 }
 
 #[tokio::test]
+#[cfg(not(feature = "sync"))]
 async fn test_query_nomatch_with_or() -> Result<(), Error> {
   let memdb = MemDb::new();
   memdb.create_collection("TestCollection").await;
@@ -118,6 +126,7 @@ async fn test_query_nomatch_with_or() -> Result<(), Error> {
 }
 
 #[tokio::test]
+#[cfg(not(feature = "sync"))]
 async fn test_eq_op() -> Result<(), Error> {
   let memdb = MemDb::new();
   memdb.create_collection("TestCollection").await;
@@ -150,6 +159,7 @@ async fn test_eq_op() -> Result<(), Error> {
 }
 
 #[tokio::test]
+#[cfg(not(feature = "sync"))]
 async fn test_eq_nomatch_op() -> Result<(), Error> {
   let memdb = MemDb::new();
   memdb.create_collection("TestCollection").await;
@@ -180,6 +190,7 @@ async fn test_eq_nomatch_op() -> Result<(), Error> {
 }
 
 #[tokio::test]
+#[cfg(not(feature = "sync"))]
 async fn test_eq_op_single_entry_embedded_doc() -> Result<(), Error> {
   let memdb = MemDb::new();
   memdb.create_collection("TestCollection").await;
@@ -211,6 +222,7 @@ async fn test_eq_op_single_entry_embedded_doc() -> Result<(), Error> {
 }
 
 #[tokio::test]
+#[cfg(not(feature = "sync"))]
 async fn test_eq_op_to_match_array_to_array() -> Result<(), Error> {
   let memdb = MemDb::new();
   memdb.create_collection("TestCollection").await;
@@ -245,6 +257,7 @@ async fn test_eq_op_to_match_array_to_array() -> Result<(), Error> {
 }
 
 #[tokio::test]
+#[cfg(not(feature = "sync"))]
 async fn test_eq_op_to_nomatch_array_to_array() -> Result<(), Error> {
   let memdb = MemDb::new();
   memdb.create_collection("TestCollection").await;
@@ -277,6 +290,7 @@ async fn test_eq_op_to_nomatch_array_to_array() -> Result<(), Error> {
 }
 
 #[tokio::test]
+#[cfg(not(feature = "sync"))]
 async fn test_eq_op_to_match_array_to_value() -> Result<(), Error> {
   let memdb = MemDb::new();
   memdb.create_collection("TestCollection").await;
@@ -311,6 +325,7 @@ async fn test_eq_op_to_match_array_to_value() -> Result<(), Error> {
 }
 
 #[tokio::test]
+#[cfg(not(feature = "sync"))]
 async fn test_gt_match() -> Result<(), Error> {
   let memdb = MemDb::new();
   memdb.create_collection("TestCollection").await;
@@ -343,6 +358,7 @@ async fn test_gt_match() -> Result<(), Error> {
 }
 
 #[tokio::test]
+#[cfg(not(feature = "sync"))]
 async fn test_gt_no_match() -> Result<(), Error> {
   let memdb = MemDb::new();
   memdb.create_collection("TestCollection").await;
@@ -373,6 +389,7 @@ async fn test_gt_no_match() -> Result<(), Error> {
 }
 
 #[tokio::test]
+#[cfg(not(feature = "sync"))]
 async fn test_gt_match_embedded_doc() -> Result<(), Error> {
   let memdb = MemDb::new();
   memdb.create_collection("TestCollection").await;
@@ -405,6 +422,7 @@ async fn test_gt_match_embedded_doc() -> Result<(), Error> {
 }
 
 #[tokio::test]
+#[cfg(not(feature = "sync"))]
 async fn test_gte_match() -> Result<(), Error> {
   let memdb = MemDb::new();
   memdb.create_collection("TestCollection").await;
@@ -439,6 +457,7 @@ async fn test_gte_match() -> Result<(), Error> {
 }
 
 #[tokio::test]
+#[cfg(not(feature = "sync"))]
 async fn test_gte_no_match() -> Result<(), Error> {
   let memdb = MemDb::new();
   memdb.create_collection("TestCollection").await;
@@ -469,6 +488,7 @@ async fn test_gte_no_match() -> Result<(), Error> {
 }
 
 #[tokio::test]
+#[cfg(not(feature = "sync"))]
 async fn test_gte_match_embedded_doc() -> Result<(), Error> {
   let memdb = MemDb::new();
   memdb.create_collection("TestCollection").await;
@@ -501,6 +521,7 @@ async fn test_gte_match_embedded_doc() -> Result<(), Error> {
 }
 
 #[tokio::test]
+#[cfg(not(feature = "sync"))]
 async fn test_lt_match() -> Result<(), Error> {
   let memdb = MemDb::new();
   memdb.create_collection("TestCollection").await;
@@ -532,6 +553,7 @@ async fn test_lt_match() -> Result<(), Error> {
 }
 
 #[tokio::test]
+#[cfg(not(feature = "sync"))]
 async fn test_lt_no_match() -> Result<(), Error> {
   let memdb = MemDb::new();
   memdb.create_collection("TestCollection").await;
@@ -562,6 +584,7 @@ async fn test_lt_no_match() -> Result<(), Error> {
 }
 
 #[tokio::test]
+#[cfg(not(feature = "sync"))]
 async fn test_lt_match_embedded_doc() -> Result<(), Error> {
   let memdb = MemDb::new();
   memdb.create_collection("TestCollection").await;
@@ -595,6 +618,7 @@ async fn test_lt_match_embedded_doc() -> Result<(), Error> {
 }
 
 #[tokio::test]
+#[cfg(not(feature = "sync"))]
 async fn test_lte_match() -> Result<(), Error> {
   let memdb = MemDb::new();
   memdb.create_collection("TestCollection").await;
@@ -628,6 +652,7 @@ async fn test_lte_match() -> Result<(), Error> {
 }
 
 #[tokio::test]
+#[cfg(not(feature = "sync"))]
 async fn test_lte_no_match() -> Result<(), Error> {
   let memdb = MemDb::new();
   memdb.create_collection("TestCollection").await;
@@ -658,6 +683,7 @@ async fn test_lte_no_match() -> Result<(), Error> {
 }
 
 #[tokio::test]
+#[cfg(not(feature = "sync"))]
 async fn test_lte_match_embedded_doc() -> Result<(), Error> {
   let memdb = MemDb::new();
   memdb.create_collection("TestCollection").await;

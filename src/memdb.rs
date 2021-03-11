@@ -29,6 +29,15 @@ impl MemDb {
       None => Err(Error::MQCollectionNotFound),
     }
   }
+
+  pub async fn delete_collection(&self, name: &str) -> Result<Collection, Error> {
+    self
+      .collections
+      .lock()
+      .await
+      .remove(name)
+      .ok_or(Error::MQCollectionNotFound)
+  }
 }
 
 #[cfg(test)]
@@ -40,6 +49,19 @@ mod tests {
     let memdb = MemDb::new();
     memdb.create_collection("TestCollection").await;
     let _ = memdb.collection("TestCollection").await?;
+    Ok(())
+  }
+
+  #[tokio::test]
+  async fn test_delete_collection() -> Result<(), Error> {
+    let memdb = MemDb::new();
+    memdb.create_collection("TestCollection").await;
+    let _ = memdb.collection("TestCollection").await?;
+    memdb.delete_collection("TestCollection").await?;
+    if let Ok(_) = memdb.delete_collection("TestCollection").await {
+      assert_eq!("should not find collection", "found collection");
+    }
+
     Ok(())
   }
 }

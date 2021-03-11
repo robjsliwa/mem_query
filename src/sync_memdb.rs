@@ -28,6 +28,15 @@ impl MemDb {
       None => Err(Error::MQCollectionNotFound),
     }
   }
+
+  pub fn delete_collection(&self, name: &str) -> Result<Collection, Error> {
+    self
+      .collections
+      .lock()
+      .unwrap()
+      .remove(name)
+      .ok_or(Error::MQCollectionNotFound)
+  }
 }
 
 #[cfg(test)]
@@ -39,6 +48,19 @@ mod tests {
     let memdb = MemDb::new();
     memdb.create_collection("TestCollection");
     let _ = memdb.collection("TestCollection")?;
+    Ok(())
+  }
+
+  #[test]
+  fn test_delete_collection() -> Result<(), Error> {
+    let memdb = MemDb::new();
+    memdb.create_collection("TestCollection");
+    let _ = memdb.collection("TestCollection")?;
+    memdb.delete_collection("TestCollection")?;
+    if let Ok(_) = memdb.delete_collection("TestCollection") {
+      assert_eq!("should not find collection", "found collection");
+    }
+
     Ok(())
   }
 }

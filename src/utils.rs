@@ -12,6 +12,11 @@ pub const NIN: &str = "$nin";
 pub const AND: &str = "$and";
 pub const OR: &str = "$or";
 
+pub const SET: &str = "$set";
+pub const UNSET: &str = "$unset";
+pub const INC: &str = "$inc";
+pub const MUL: &str = "$mul";
+
 pub fn has_comparison_op(compare_obj: &Value) -> (bool, &str, &Value) {
   match compare_obj.as_object() {
     Some(o) => {

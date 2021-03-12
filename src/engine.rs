@@ -1,4 +1,4 @@
-use super::{errors::Error, utils::*};
+use super::{collection::DocumentCollection, errors::Error, utils::*};
 use serde_json::Value;
 
 pub type Documents = Vec<Value>;
@@ -17,25 +17,49 @@ fn is_key_valid_op(key: &str) -> Result<(), Error> {
   Ok(())
 }
 
-pub struct Engine<'a> {
-  docs: &'a Documents,
+pub struct Engine {
+  docs: DocumentCollection,
 }
 
-impl<'a> Engine<'a> {
-  pub fn with_collection(docs: &'a Documents) -> Engine<'a> {
+impl Engine {
+  pub fn with_collection(docs: DocumentCollection) -> Engine {
     Engine { docs }
   }
 
+  #[cfg(feature = "sync")]
   pub fn find(&self, query: &Value) -> Result<Documents, Error> {
     let mut result: Documents = Vec::new();
 
-    for document in self.docs.iter() {
+    for document in self.docs.lock().unwrap().iter() {
       if self.perform_query(&query, document)? {
         result.push(document.clone());
       }
     }
     Ok(result)
   }
+
+  #[cfg(not(feature = "sync"))]
+  pub async fn find(&self, query: &Value) -> Result<Documents, Error> {
+    let mut result: Documents = Vec::new();
+
+    for document in self.docs.lock().await.iter() {
+      if self.perform_query(&query, document)? {
+        result.push(document.clone());
+      }
+    }
+    Ok(result)
+  }
+
+  // pub fn find_and_update(&self, query: &Value, update: &Value) -> Result<Documents, Error> {
+  //   let mut result: Documents = Vec::new();
+
+  //   for document in self.docs.iter_mut() {
+  //     if self.perform_query(&query, document)? {
+  //       result.push(document.clone());
+  //     }
+  //   }
+  //   Ok(result)
+  // }
 
   fn get_document_value<'d>(&self, key: &str, document: &'d Value) -> Result<&'d Value, Error> {
     // find if the value should be the immediate value of the key or embedded document

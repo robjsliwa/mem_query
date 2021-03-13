@@ -70,4 +70,36 @@ impl Collection {
       .find(&query)
       .await
   }
+
+  #[cfg(feature = "sync")]
+  pub fn find_and_update(&self, query: Value, update: Value) -> Result<u64, Error> {
+    if !query.is_object() {
+      return Err(Error::MQError(String::from("Query must be a JSON object.")));
+    }
+
+    if !update.is_object() {
+      return Err(Error::MQError(String::from(
+        "Update must be a JSON object.",
+      )));
+    }
+
+    Engine::with_collection(self.data.clone()).find_and_update(&query, &update)
+  }
+
+  #[cfg(not(feature = "sync"))]
+  pub async fn find_and_update(&self, query: Value, update: Value) -> Result<u64, Error> {
+    if !query.is_object() {
+      return Err(Error::MQError(String::from("Query must be a JSON object.")));
+    }
+
+    if !update.is_object() {
+      return Err(Error::MQError(String::from(
+        "Update must be a JSON object.",
+      )));
+    }
+
+    Engine::with_collection(self.data.clone())
+      .find_and_update(&query, &update)
+      .await
+  }
 }

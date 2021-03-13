@@ -3,6 +3,17 @@ use serde_json::Value;
 
 pub type Documents = Vec<Value>;
 
+pub fn has_update_operations(update: &Value) -> Result<bool, Error> {
+  let update = update.as_object().unwrap();
+  let all_operators = update.keys().map(|k| k.starts_with("$")).all(|o| o == true);
+  if !all_operators && update.keys().map(|k| k.starts_with("$")).any(|o| o == true) {
+    return Err(Error::MQInvalidOp(String::from(
+      "Cannot mix update operators with keys.",
+    )));
+  }
+  Ok(all_operators)
+}
+
 fn is_key_valid_op(key: &str) -> Result<(), Error> {
   // if key contains op check if it is valid
   let (is_embedded, _) = is_embedded_query(key);
@@ -50,16 +61,97 @@ impl Engine {
     Ok(result)
   }
 
-  // pub fn find_and_update(&self, query: &Value, update: &Value) -> Result<Documents, Error> {
-  //   let mut result: Documents = Vec::new();
+  #[cfg(not(feature = "sync"))]
+  pub async fn find_and_update(&self, query: &Value, update: &Value) -> Result<u64, Error> {
+    let mut documents_updated: u64 = 0;
+    for document in self.docs.lock().await.iter_mut() {
+      if self.perform_query(&query, document)? {
+        self.perform_update(update, document)?;
+        documents_updated += 1;
+      }
+    }
+    Ok(documents_updated)
+  }
 
-  //   for document in self.docs.iter_mut() {
-  //     if self.perform_query(&query, document)? {
-  //       result.push(document.clone());
-  //     }
-  //   }
-  //   Ok(result)
-  // }
+  #[cfg(feature = "sync")]
+  pub fn find_and_update(&self, query: &Value, update: &Value) -> Result<u64, Error> {
+    let mut documents_updated: u64 = 0;
+    for document in self.docs.lock().unwrap().iter_mut() {
+      if self.perform_query(&query, document)? {
+        self.perform_update(update, document)?;
+        documents_updated += 1;
+      }
+    }
+    Ok(documents_updated)
+  }
+
+  fn perform_update<'d>(
+    &self,
+    update: &Value,
+    document: &'d mut Value,
+  ) -> Result<&'d mut Value, Error> {
+    if has_update_operations(update)? {
+      self.perform_update_operations(update, document)?;
+    } else {
+      *document = update.clone();
+    }
+
+    Ok(document)
+  }
+
+  fn perform_update_operations(&self, update: &Value, document: &mut Value) -> Result<(), Error> {
+    let update = update.as_object().unwrap();
+    for key in update.keys() {
+      match key.as_str() {
+        SET => self.handle_set(&update[key], document)?,
+        UNSET => self.hanlde_unset(&update[key], document)?,
+        _ => {
+          return Err(Error::MQInvalidOp(format!(
+            "{} is invalid update operator.",
+            key
+          )))
+        }
+      }
+    }
+
+    Ok(())
+  }
+
+  fn handle_set(&self, update: &Value, document: &mut Value) -> Result<(), Error> {
+    let update = match update.as_object() {
+      Some(u) => u,
+      None => {
+        return Err(Error::MQInvalidValue(String::from(
+          "$set operator value must be JSON object",
+        )))
+      }
+    };
+
+    for (k, v) in update {
+      document[k] = v.clone();
+    }
+
+    Ok(())
+  }
+
+  fn hanlde_unset(&self, update: &Value, document: &mut Value) -> Result<(), Error> {
+    let update = match update.as_object() {
+      Some(u) => u,
+      None => {
+        return Err(Error::MQInvalidValue(String::from(
+          "$unset operator value must be JSON object",
+        )))
+      }
+    };
+
+    let document = document.as_object_mut().unwrap();
+
+    for key in update.keys() {
+      document.remove(key);
+    }
+
+    Ok(())
+  }
 
   fn get_document_value<'d>(&self, key: &str, document: &'d Value) -> Result<&'d Value, Error> {
     // find if the value should be the immediate value of the key or embedded document

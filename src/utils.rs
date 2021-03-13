@@ -67,3 +67,8 @@ pub fn is_embedded_query(key: &str) -> (bool, Vec<&str>) {
   };
   (is_embedded, key_parts)
 }
+
+pub fn has_ops(key: &str) -> bool {
+  let key_parts: Vec<&str> = key.split('.').collect();
+  key_parts.iter().any(|k| k.starts_with('$'))
+}

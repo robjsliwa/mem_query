@@ -15,7 +15,7 @@ pub fn has_update_operations(update: &Value) -> Result<bool, Error> {
 }
 
 fn is_key_valid_op(key: &str) -> Result<(), Error> {
-  // if key contains op check if it is valid
+  // if key contains comparison op check if it is valid
   let (is_embedded, _) = is_embedded_query(key);
   if is_embedded && key.contains("$") {
     return Err(Error::MQOpNotAllowedInMultipartKey);
@@ -117,6 +117,22 @@ impl Engine {
     Ok(())
   }
 
+  fn set_doc_value(&self, key: &str, document: &mut Value, new_value: &Value) {
+    let (is_embedded, key_parts) = is_embedded_query(key);
+
+    if !is_embedded {
+      document[key] = new_value.clone();
+      return;
+    }
+
+    let key_parts_rest = &key_parts[1..];
+    self.set_doc_value(
+      &key_parts_rest.join("."),
+      &mut document[key_parts[0]],
+      new_value,
+    );
+  }
+
   fn handle_set(&self, update: &Value, document: &mut Value) -> Result<(), Error> {
     let update = match update.as_object() {
       Some(u) => u,
@@ -128,10 +144,26 @@ impl Engine {
     };
 
     for (k, v) in update {
-      document[k] = v.clone();
+      if has_ops(k) {
+        return Err(Error::MQOpNotAllowedInMultipartKey);
+      }
+      self.set_doc_value(k, document, v);
     }
 
     Ok(())
+  }
+
+  fn unset_doc_value(&self, key: &str, document: &mut Value) {
+    let (is_embedded, key_parts) = is_embedded_query(key);
+
+    if !is_embedded {
+      let document = document.as_object_mut().unwrap();
+      document.remove(key);
+      return;
+    }
+
+    let key_parts_rest = &key_parts[1..];
+    self.unset_doc_value(&key_parts_rest.join("."), &mut document[key_parts[0]]);
   }
 
   fn hanlde_unset(&self, update: &Value, document: &mut Value) -> Result<(), Error> {
@@ -144,14 +176,19 @@ impl Engine {
       }
     };
 
-    let document = document.as_object_mut().unwrap();
+    // let document = document.as_object_mut().unwrap();
 
     for key in update.keys() {
-      document.remove(key);
+      // document.remove(key);
+      self.unset_doc_value(key, document);
     }
 
     Ok(())
   }
+
+  // fn handle_inc(&self, update: &Value, document: &mut Value) -> Result<(), Error> {
+  //   Ok(())
+  // }
 
   fn get_document_value<'d>(&self, key: &str, document: &'d Value) -> Result<&'d Value, Error> {
     // find if the value should be the immediate value of the key or embedded document

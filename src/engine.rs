@@ -117,20 +117,20 @@ impl Engine {
     Ok(())
   }
 
-  fn set_doc_value(&self, key: &str, document: &mut Value, new_value: &Value) {
+  fn run_op_on_value<F>(&self, key: &str, document: &mut Value, op: F)
+  where
+    F: Fn(&str, &mut Value),
+  {
     let (is_embedded, key_parts) = is_embedded_query(key);
 
     if !is_embedded {
-      document[key] = new_value.clone();
+      println!("Key: {}, document: {:?}", key, document);
+      op(key, document);
       return;
     }
 
     let key_parts_rest = &key_parts[1..];
-    self.set_doc_value(
-      &key_parts_rest.join("."),
-      &mut document[key_parts[0]],
-      new_value,
-    );
+    self.run_op_on_value(&key_parts_rest.join("."), &mut document[key_parts[0]], op);
   }
 
   fn handle_set(&self, update: &Value, document: &mut Value) -> Result<(), Error> {
@@ -147,23 +147,10 @@ impl Engine {
       if has_ops(k) {
         return Err(Error::MQOpNotAllowedInMultipartKey);
       }
-      self.set_doc_value(k, document, v);
+      self.run_op_on_value(k, document, |k, d| d[k] = v.clone());
     }
 
     Ok(())
-  }
-
-  fn unset_doc_value(&self, key: &str, document: &mut Value) {
-    let (is_embedded, key_parts) = is_embedded_query(key);
-
-    if !is_embedded {
-      let document = document.as_object_mut().unwrap();
-      document.remove(key);
-      return;
-    }
-
-    let key_parts_rest = &key_parts[1..];
-    self.unset_doc_value(&key_parts_rest.join("."), &mut document[key_parts[0]]);
   }
 
   fn hanlde_unset(&self, update: &Value, document: &mut Value) -> Result<(), Error> {
@@ -176,11 +163,12 @@ impl Engine {
       }
     };
 
-    // let document = document.as_object_mut().unwrap();
-
+    let handler = |k: &str, d: &mut Value| {
+      let document = d.as_object_mut().unwrap();
+      document.remove(k);
+    };
     for key in update.keys() {
-      // document.remove(key);
-      self.unset_doc_value(key, document);
+      self.run_op_on_value(key, document, handler);
     }
 
     Ok(())

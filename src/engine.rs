@@ -1,5 +1,5 @@
 use super::{collection::DocumentCollection, errors::Error, utils::*};
-use serde_json::Value;
+use serde_json::{json, Value};
 
 pub type Documents = Vec<Value>;
 
@@ -105,6 +105,7 @@ impl Engine {
       match key.as_str() {
         SET => self.handle_set(&update[key], document)?,
         UNSET => self.hanlde_unset(&update[key], document)?,
+        INC => self.handle_inc(&update[key], document)?,
         _ => {
           return Err(Error::MQInvalidOp(format!(
             "{} is invalid update operator.",
@@ -117,20 +118,20 @@ impl Engine {
     Ok(())
   }
 
-  fn run_op_on_value<F>(&self, key: &str, document: &mut Value, op: F)
+  fn run_op_on_value<F>(&self, key: &str, document: &mut Value, op: F) -> Result<(), Error>
   where
-    F: Fn(&str, &mut Value),
+    F: Fn(&str, &mut Value) -> Result<(), Error>,
   {
     let (is_embedded, key_parts) = is_embedded_query(key);
 
     if !is_embedded {
       println!("Key: {}, document: {:?}", key, document);
-      op(key, document);
-      return;
+      return op(key, document);
     }
 
     let key_parts_rest = &key_parts[1..];
-    self.run_op_on_value(&key_parts_rest.join("."), &mut document[key_parts[0]], op);
+    self.run_op_on_value(&key_parts_rest.join("."), &mut document[key_parts[0]], op)?;
+    Ok(())
   }
 
   fn handle_set(&self, update: &Value, document: &mut Value) -> Result<(), Error> {
@@ -147,7 +148,11 @@ impl Engine {
       if has_ops(k) {
         return Err(Error::MQOpNotAllowedInMultipartKey);
       }
-      self.run_op_on_value(k, document, |k, d| d[k] = v.clone());
+      let handler = |k: &str, d: &mut Value| {
+        d[k] = v.clone();
+        Ok(())
+      };
+      self.run_op_on_value(k, document, handler)?;
     }
 
     Ok(())
@@ -166,17 +171,72 @@ impl Engine {
     let handler = |k: &str, d: &mut Value| {
       let document = d.as_object_mut().unwrap();
       document.remove(k);
+      Ok(())
     };
     for key in update.keys() {
-      self.run_op_on_value(key, document, handler);
+      self.run_op_on_value(key, document, handler)?;
     }
 
     Ok(())
   }
 
-  // fn handle_inc(&self, update: &Value, document: &mut Value) -> Result<(), Error> {
-  //   Ok(())
-  // }
+  fn handle_inc(&self, update: &Value, document: &mut Value) -> Result<(), Error> {
+    let update = match update.as_object() {
+      Some(u) => u,
+      None => {
+        return Err(Error::MQInvalidValue(String::from(
+          "$inc operator value must be JSON object",
+        )))
+      }
+    };
+
+    for (k, v) in update {
+      if has_ops(k) {
+        return Err(Error::MQOpNotAllowedInMultipartKey);
+      }
+
+      if !v.is_number() {
+        return Err(Error::MQInvalidType);
+      }
+
+      let handler = |k: &str, d: &mut Value| {
+        println!("HANDLER 1");
+        match (&d[k], &v.clone()) {
+          (Value::Number(dk), Value::Number(v)) => {
+            if let Some(d_f) = dk.as_f64() {
+              println!("TRY3");
+              if let Some(v_f) = v.as_f64() {
+                d[k] = json!(d_f + v_f);
+                println!("CHECK3");
+              }
+            } else if let Some(d_i) = dk.as_i64() {
+              println!("TRY2");
+              if let Some(v_i) = v.as_i64() {
+                d[k] = json!(d_i + v_i);
+                println!("CHECK2");
+              }
+            } else if let Some(d_u) = dk.as_u64() {
+              println!("TRY1");
+              if let Some(v_u) = v.as_u64() {
+                d[k] = json!(d_u + v_u);
+                println!("CHECK1");
+              }
+            }
+          }
+          _ => {
+            println!("CHECK4");
+            return Err(Error::MQInvalidType);
+          }
+        };
+
+        Ok(())
+      };
+
+      self.run_op_on_value(k, document, handler)?;
+    }
+
+    Ok(())
+  }
 
   fn get_document_value<'d>(&self, key: &str, document: &'d Value) -> Result<&'d Value, Error> {
     // find if the value should be the immediate value of the key or embedded document

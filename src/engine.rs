@@ -3,6 +3,11 @@ use serde_json::{json, Value};
 
 pub type Documents = Vec<Value>;
 
+enum MathOpType {
+  Inc,
+  Mul,
+}
+
 pub fn has_update_operations(update: &Value) -> Result<bool, Error> {
   let update = update.as_object().unwrap();
   let all_operators = update.keys().map(|k| k.starts_with("$")).all(|o| o == true);
@@ -26,6 +31,22 @@ fn is_key_valid_op(key: &str) -> Result<(), Error> {
   }
 
   Ok(())
+}
+
+fn sum<T>(x: T, y: T) -> T
+where
+  T: std::ops::Add<Output = T>,
+{
+  let result: T = x + y;
+  result
+}
+
+fn mul<T>(x: T, y: T) -> T
+where
+  T: std::ops::Mul<Output = T>,
+{
+  let result: T = x * y;
+  result
 }
 
 pub struct Engine {
@@ -106,6 +127,7 @@ impl Engine {
         SET => self.handle_set(&update[key], document)?,
         UNSET => self.hanlde_unset(&update[key], document)?,
         INC => self.handle_inc(&update[key], document)?,
+        MUL => self.handle_mul(&update[key], document)?,
         _ => {
           return Err(Error::MQInvalidOp(format!(
             "{} is invalid update operator.",
@@ -125,7 +147,6 @@ impl Engine {
     let (is_embedded, key_parts) = is_embedded_query(key);
 
     if !is_embedded {
-      println!("Key: {}, document: {:?}", key, document);
       return op(key, document);
     }
 
@@ -181,6 +202,19 @@ impl Engine {
   }
 
   fn handle_inc(&self, update: &Value, document: &mut Value) -> Result<(), Error> {
+    self.handle_math_ops(update, document, MathOpType::Inc)
+  }
+
+  fn handle_mul(&self, update: &Value, document: &mut Value) -> Result<(), Error> {
+    self.handle_math_ops(update, document, MathOpType::Mul)
+  }
+
+  fn handle_math_ops(
+    &self,
+    update: &Value,
+    document: &mut Value,
+    op_type: MathOpType,
+  ) -> Result<(), Error> {
     let update = match update.as_object() {
       Some(u) => u,
       None => {
@@ -200,31 +234,32 @@ impl Engine {
       }
 
       let handler = |k: &str, d: &mut Value| {
-        println!("HANDLER 1");
         match (&d[k], &v.clone()) {
           (Value::Number(dk), Value::Number(v)) => {
             if let Some(d_f) = dk.as_f64() {
-              println!("TRY3");
               if let Some(v_f) = v.as_f64() {
-                d[k] = json!(d_f + v_f);
-                println!("CHECK3");
+                match op_type {
+                  MathOpType::Inc => d[k] = json!(sum(d_f, v_f)),
+                  MathOpType::Mul => d[k] = json!(mul(d_f, v_f)),
+                };
               }
             } else if let Some(d_i) = dk.as_i64() {
-              println!("TRY2");
               if let Some(v_i) = v.as_i64() {
-                d[k] = json!(d_i + v_i);
-                println!("CHECK2");
+                match op_type {
+                  MathOpType::Inc => d[k] = json!(sum(d_i, v_i)),
+                  MathOpType::Mul => d[k] = json!(mul(d_i, v_i)),
+                };
               }
             } else if let Some(d_u) = dk.as_u64() {
-              println!("TRY1");
               if let Some(v_u) = v.as_u64() {
-                d[k] = json!(d_u + v_u);
-                println!("CHECK1");
+                match op_type {
+                  MathOpType::Inc => d[k] = json!(sum(d_u, v_u)),
+                  MathOpType::Mul => d[k] = json!(mul(d_u, v_u)),
+                };
               }
             }
           }
           _ => {
-            println!("CHECK4");
             return Err(Error::MQInvalidType);
           }
         };

@@ -259,3 +259,47 @@ async fn inc_negative_op_update() -> Result<(), Error> {
   assert_eq!(docs[0]["age"], 15.0);
   Ok(())
 }
+
+#[tokio::test]
+#[cfg(not(feature = "sync"))]
+async fn mul_positive_op_update() -> Result<(), Error> {
+  let memdb = MemDb::new();
+  memdb.create_collection("TestCollection").await;
+  let coll = memdb.collection("TestCollection").await?;
+  coll.insert(doc!({ "name": "Rob", "age": 25 })).await?;
+  coll.insert(doc!({ "name": "Bob", "age": 20 })).await?;
+  coll.insert(doc!({ "name": "Tom", "age": 30 })).await?;
+
+  let docs_updated = coll
+    .find_and_update(query!({"name": "Bob"}), update!({"$mul": { "age": 5}}))
+    .await?;
+
+  assert_eq!(docs_updated, 1);
+
+  let docs = coll.find(query!({"name": "Bob"})).await?;
+  assert_eq!(docs.len(), 1);
+  assert_eq!(docs[0]["age"], 100.0);
+  Ok(())
+}
+
+#[tokio::test]
+#[cfg(not(feature = "sync"))]
+async fn mul_negative_op_update() -> Result<(), Error> {
+  let memdb = MemDb::new();
+  memdb.create_collection("TestCollection").await;
+  let coll = memdb.collection("TestCollection").await?;
+  coll.insert(doc!({ "name": "Rob", "age": 25 })).await?;
+  coll.insert(doc!({ "name": "Bob", "age": 20 })).await?;
+  coll.insert(doc!({ "name": "Tom", "age": 30 })).await?;
+
+  let docs_updated = coll
+    .find_and_update(query!({"name": "Bob"}), update!({"$mul": { "age": -5 }}))
+    .await?;
+
+  assert_eq!(docs_updated, 1);
+
+  let docs = coll.find(query!({"name": "Bob"})).await?;
+  assert_eq!(docs.len(), 1);
+  assert_eq!(docs[0]["age"], -100.0);
+  Ok(())
+}

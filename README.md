@@ -169,6 +169,8 @@ let docs = coll.find(query!({ "qty": { "$lte": 20 } })).await?;
 
 ## Update Document
 
+This shows examples how to use `find_and_update` API.
+
 Update document by replacing entire document:
 
 ```

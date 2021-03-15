@@ -167,6 +167,136 @@ let docs = coll.find(query!({ "qty": { "$lt": 20 } })).await?;
 let docs = coll.find(query!({ "qty": { "$lte": 20 } })).await?;
 ```
 
+## Update Document
+
+Update document by replacing entire document:
+
+```
+let memdb = MemDb::new();
+memdb.create_collection("TestCollection").await;
+let coll = memdb.collection("TestCollection").await?;
+coll.insert(doc!({ "name": "Rob", "age": 25 })).await?;
+coll.insert(doc!({ "name": "Bob", "age": 20 })).await?;
+coll.insert(doc!({ "name": "Tom", "age": 30 })).await?;
+
+let docs_updated = coll
+  .find_and_update(
+    query!({"name": "Bob"}),
+    update!({"nickname": "Bobcat", "voice": "meow"}),
+  )
+  .await?;
+
+assert_eq!(docs_updated, 1);
+
+let docs = coll.find(query!({"nickname": "Bobcat"})).await?;
+assert_eq!(docs.len(), 1);
+assert_eq!(docs[0]["voice"], "meow");
+```
+
+Update specific field(s) in the document:
+
+```
+let coll = memdb.collection("TestCollection").await?;
+coll.insert(doc!({ "name": "Rob", "age": 25 })).await?;
+coll.insert(doc!({ "name": "Bob", "age": 20 })).await?;
+coll.insert(doc!({ "name": "Tom", "age": 30 })).await?;
+
+let docs_updated = coll
+  .find_and_update(
+    query!({"name": "Bob"}),
+    update!({"$set": { "name": "Roy", "age": 21, "email": "test@test.com"}}),
+  )
+  .await?;
+
+assert_eq!(docs_updated, 1);
+
+let docs = coll.find(query!({"name": "Roy"})).await?;
+assert_eq!(docs.len(), 1);
+assert_eq!(docs[0]["age"], 21);
+assert_eq!(docs[0]["email"], "test@test.com");
+```
+
+Update document to remove field:
+
+```
+let memdb = MemDb::new();
+memdb.create_collection("TestCollection").await;
+let coll = memdb.collection("TestCollection").await?;
+coll.insert(doc!({ "name": "Rob", "age": 25 })).await?;
+coll.insert(doc!({ "name": "Bob", "age": 20 })).await?;
+coll.insert(doc!({ "name": "Tom", "age": 30 })).await?;
+
+let docs_updated = coll
+  .find_and_update(
+    query!({ "name": "Bob" }),
+    update!({ "$set": { "name": "Roy", "age": 21, "email": "test@test.com" }}),
+  )
+  .await?;
+
+assert_eq!(docs_updated, 1);
+
+let docs = coll.find(query!({"name": "Roy"})).await?;
+assert_eq!(docs.len(), 1);
+assert_eq!(docs[0]["age"], 21);
+assert_eq!(docs[0]["email"], "test@test.com");
+
+let docs_updated2 = coll
+  .find_and_update(
+    query!({ "name": "Roy" }),
+    update!({ "$unset": { "email": "" }}),
+  )
+  .await?;
+
+assert_eq!(docs_updated2, 1);
+
+let docs = coll.find(query!({"name": "Roy"})).await?;
+assert_eq!(docs.len(), 1);
+assert_eq!(docs[0]["age"], 21);
+assert_eq!(docs[0]["email"], serde_json::Value::Null);
+```
+
+Increment value of the field in the document:
+
+```
+let memdb = MemDb::new();
+memdb.create_collection("TestCollection").await;
+let coll = memdb.collection("TestCollection").await?;
+coll.insert(doc!({ "name": "Rob", "age": 25 })).await?;
+coll.insert(doc!({ "name": "Bob", "age": 20 })).await?;
+coll.insert(doc!({ "name": "Tom", "age": 30 })).await?;
+
+let docs_updated = coll
+  .find_and_update(query!({"name": "Bob"}), update!({"$inc": { "age": -5 }}))
+  .await?;
+
+assert_eq!(docs_updated, 1);
+
+let docs = coll.find(query!({"name": "Bob"})).await?;
+assert_eq!(docs.len(), 1);
+assert_eq!(docs[0]["age"], 15.0);
+```
+
+Multiply value of a field in the document:
+
+```
+let memdb = MemDb::new();
+memdb.create_collection("TestCollection").await;
+let coll = memdb.collection("TestCollection").await?;
+coll.insert(doc!({ "name": "Rob", "age": 25 })).await?;
+coll.insert(doc!({ "name": "Bob", "age": 20 })).await?;
+coll.insert(doc!({ "name": "Tom", "age": 30 })).await?;
+
+let docs_updated = coll
+  .find_and_update(query!({"name": "Bob"}), update!({"$mul": { "age": 5}}))
+  .await?;
+
+assert_eq!(docs_updated, 1);
+
+let docs = coll.find(query!({"name": "Bob"})).await?;
+assert_eq!(docs.len(), 1);
+assert_eq!(docs[0]["age"], 100.0);
+```
+
 # Sync API
 
 The sync API are found in `sync_memdb` and `sync_collection` modules.  To use sync API you need to enable it using `sync` feature flag.

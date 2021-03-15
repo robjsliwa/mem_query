@@ -1,5 +1,5 @@
 #[cfg(feature = "sync")]
-use memquery::{doc, errors::Error, query, sync_memdb::MemDb};
+use memquery::{doc, errors::Error, memdb::MemDb, query};
 
 #[test]
 #[cfg(feature = "sync")]

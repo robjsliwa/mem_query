@@ -17,6 +17,13 @@ macro_rules! query {
   };
 }
 
+#[macro_export]
+macro_rules! update {
+  ($($json:tt)+) => {
+    serde_json::json!($($json)+)
+  };
+}
+
 #[cfg(test)]
 mod tests {
   #[test]

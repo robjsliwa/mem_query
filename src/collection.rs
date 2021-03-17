@@ -1,5 +1,5 @@
 use super::{
-  engine::{Documents, Engine},
+  engine::{DocumentCollection, Documents, Engine},
   errors::Error,
 };
 use serde_json::Value;
@@ -10,8 +10,6 @@ use std::sync::Mutex;
 
 #[cfg(not(feature = "sync"))]
 use tokio::sync::Mutex;
-
-pub type DocumentCollection = Arc<Mutex<Vec<Value>>>;
 
 #[derive(Clone)]
 pub struct Collection {

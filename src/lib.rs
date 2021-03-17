@@ -5,3 +5,5 @@ mod engine;
 pub mod errors;
 pub mod memdb;
 mod utils;
+
+pub use engine::{DocumentCollection, Documents};

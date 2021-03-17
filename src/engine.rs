@@ -1,7 +1,16 @@
-use super::{collection::DocumentCollection, errors::Error, utils::*};
+use super::{errors::Error, utils::*};
 use serde_json::{json, Value};
+use std::sync::Arc;
+
+#[cfg(feature = "sync")]
+use std::sync::Mutex;
+
+#[cfg(not(feature = "sync"))]
+use tokio::sync::Mutex;
 
 pub type Documents = Vec<Value>;
+
+pub type DocumentCollection = Arc<Mutex<Documents>>;
 
 enum MathOpType {
   Inc,

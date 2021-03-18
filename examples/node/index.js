@@ -1,4 +1,4 @@
-const { MemoryDB } = require('../../wasm/pkg/memquery_wasm');
+const { MemoryDB } = require('../../wasm/pkg/wsmemquery');
 
 console.log(MemoryDB)
 

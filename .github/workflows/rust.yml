@@ -23,5 +23,5 @@ jobs:
     - name: Run sync tests
       run: cargo t --verbose --features "sync"
     - name: Build WASM
-      run: rustup target add wasm32-unknown-unknown && curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh && cd wasm && wasm-pack build --target nodejs
+      run: rustup target add wasm32-unknown-unknown && cd wasm && cargo build --target wasm32-unknown-unknown
     

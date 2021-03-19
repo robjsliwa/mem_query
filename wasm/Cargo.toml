@@ -10,14 +10,12 @@ edition = "2018"
 crate-type = ["cdylib"]
 
 [dependencies]
-wasm-bindgen = "0.2.71"
 memquery = { path = "../", default-features = false, features = ["sync"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-
-[dev-dependencies]
-wasm-bindgen-test = "0.3.13"
+lazy_static = "1.4.0"
 
 [profile.release]
 # Tell `rustc` to optimize for small code size.
 opt-level = "s"
+

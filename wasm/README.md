@@ -1,0 +1,3 @@
+# memquery - wasm
+
+

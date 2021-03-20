@@ -1,34 +1,93 @@
 mod memory;
 
 use lazy_static::lazy_static;
-pub use memory::{alloc, dealloc};
-use memquery::{collection::Collection, doc, errors::Error, memdb::MemDb, query};
+pub use memory::{
+  alloc, dealloc, json_from_ptr, json_to_ptr, result_to_ptr, string_from_ptr, string_to_ptr,
+};
+use memquery::{doc, memdb::MemDb};
 use serde_json::json;
 
 lazy_static! {
   static ref MEMDB: MemDb = MemDb::new();
 }
 
-pub unsafe fn string_from_ptr(ptr: *mut u8, len: usize) -> String {
-  let data = Vec::from_raw_parts(ptr, len, len);
-  String::from_utf8_lossy(&data[..]).into_owned()
-}
-
-pub unsafe fn string_to_ptr(value: &str) -> *mut u8 {
-  let mut b: Vec<u8> = value.as_bytes().iter().cloned().collect();
-  b.push(0);
-  let ptr = b.as_mut_ptr();
-  std::mem::forget(b);
-  ptr
-}
-
 #[no_mangle]
-pub unsafe fn create_collection(ptr: *mut u8, len: usize) -> *mut u8 {
-  let name = string_from_ptr(ptr, len);
+pub fn create_collection(ptr: *mut u8, len: usize) -> *mut u8 {
+  let name = unsafe { string_from_ptr(ptr, len) };
   MEMDB.create_collection(&name);
 
   let name_up = "Slinky";
-  string_to_ptr(&name_up)
+  unsafe { string_to_ptr(&name_up) }
+}
+
+#[no_mangle]
+pub fn collection(ptr: *mut u8, len: usize) -> u8 {
+  let coll_name = unsafe { string_from_ptr(ptr, len) };
+  match MEMDB.collection(&coll_name) {
+    Ok(_) => 1,
+    Err(_) => 0,
+  }
+}
+
+#[no_mangle]
+pub fn delete_collection(ptr: *mut u8, len: usize) -> u8 {
+  let coll_name = unsafe { string_from_ptr(ptr, len) };
+  match MEMDB.delete_collection(&coll_name) {
+    Ok(_) => 1,
+    Err(_) => 0,
+  }
+}
+
+#[no_mangle]
+pub fn insert(
+  coll_name_ptr: *mut u8,
+  coll_len: usize,
+  doc_ptr: *mut u8,
+  doc_len: usize,
+) -> *mut u8 {
+  let coll_name = unsafe { string_from_ptr(coll_name_ptr, coll_len) };
+  let doc_res = unsafe { json_from_ptr(doc_ptr, doc_len) };
+
+  let doc = match doc_res {
+    Ok(d) => d,
+    Err(e) => return unsafe { result_to_ptr(Err(e)) },
+  };
+
+  let coll = match MEMDB.collection(&coll_name) {
+    Ok(c) => c,
+    Err(e) => return unsafe { result_to_ptr(Err(e)) },
+  };
+
+  match coll.insert(doc.clone()) {
+    Ok(_) => unsafe { result_to_ptr(Ok(&json!({}))) },
+    Err(e) => unsafe { result_to_ptr(Err(e)) },
+  }
+}
+
+#[no_mangle]
+pub fn find(
+  coll_name_ptr: *mut u8,
+  coll_len: usize,
+  query_ptr: *mut u8,
+  query_len: usize,
+) -> *mut u8 {
+  let coll_name = unsafe { string_from_ptr(coll_name_ptr, coll_len) };
+  let query_res = unsafe { json_from_ptr(query_ptr, query_len) };
+
+  let query = match query_res {
+    Ok(q) => q,
+    Err(e) => return unsafe { result_to_ptr(Err(e)) },
+  };
+
+  let coll = match MEMDB.collection(&coll_name) {
+    Ok(c) => c,
+    Err(e) => return unsafe { result_to_ptr(Err(e)) },
+  };
+
+  match coll.find(query.clone()) {
+    Ok(docs) => unsafe { result_to_ptr(Ok(&json!(docs))) },
+    Err(e) => unsafe { result_to_ptr(Err(e)) },
+  }
 }
 
 // pub type JsonDocument = Box<[JsValue]>;

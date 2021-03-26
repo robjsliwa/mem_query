@@ -12,12 +12,9 @@ lazy_static! {
 }
 
 #[no_mangle]
-pub fn create_collection(ptr: *mut u8, len: usize) -> *mut u8 {
+pub fn create_collection(ptr: *mut u8, len: usize) {
   let name = unsafe { string_from_ptr(ptr, len) };
   MEMDB.create_collection(&name);
-
-  let name_up = "Slinky";
-  unsafe { string_to_ptr(&name_up) }
 }
 
 #[no_mangle]

@@ -2,7 +2,7 @@ import wasmtime.loader
 import wsmemquery as instance
 import json
 from errors import CreateCollectionFailed, InsertDocumentFailed, FindCollectionError
-from membind import write_str, linear_mem_addr, ptr_to_str
+from membind import write_str, linear_mem_addr, ptr_to_str, result_ptr_to_value
 
 # memquery API
 
@@ -31,7 +31,23 @@ class Collection:
         instance.dealloc(res_ptr, res_len)
 
   def find(self, query):
-    pass
+    name_ptr, name_len = write_str(instance, self._name)
+    querystr = json.dumps(query)
+    query_ptr, query_len = write_str(instance, querystr)
+    res_ptr = None
+    res_len = 0
+
+    res_json = []
+
+    try:
+      res_ptr = instance.find(name_ptr, name_len, query_ptr, query_len)
+      res_json, err = result_ptr_to_value(linear_mem_addr(instance), res_ptr)
+      if err is not None:
+        raise FindCollectionError(err)
+    except Exception as e:
+      raise FindCollectionError(e)
+
+    return res_json
 
 def create_collection(name):
   name_ptr, name_len = write_str(instance, name)
@@ -63,3 +79,6 @@ if __name__ == '__main__':
 
   test_coll1 = collection('TestCollection1')
   test_coll1.insert({ "name": "Tomeczek" })
+
+  res = test_coll.find({ "name": "Tomek" })
+  print(f'Find result: {res}')

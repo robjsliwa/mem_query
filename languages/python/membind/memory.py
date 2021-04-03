@@ -1,3 +1,6 @@
+import json
+
+
 # Memory and Types
 
 def linear_mem_addr(instance, size=8):
@@ -33,3 +36,10 @@ def write_str(instance, name):
   name_ptr = instance.alloc(name_len)
   write_to_memory(name, linear_mem_addr(instance), name_ptr)
   return name_ptr, name_len
+
+def result_ptr_to_value(mem_addr, res_ptr):
+    result, res_len = ptr_to_str(mem_addr, res_ptr)
+    res_json = json.loads(result)
+    if res_json.get('error', None) is not None:
+        return None, res_json['error']
+    return res_json.get('value', []), None

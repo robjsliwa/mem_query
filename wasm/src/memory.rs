@@ -11,9 +11,8 @@ pub fn alloc(len: usize) -> *mut u8 {
 
 #[no_mangle]
 pub unsafe fn dealloc(ptr: *mut u8, size: usize) {
-  let data = Vec::from_raw_parts(ptr, size, size);
-
-  std::mem::drop(data);
+  // take ownership and deallocates
+  let _ = Vec::from_raw_parts(ptr, size, size);
 }
 
 pub unsafe fn string_from_ptr(ptr: *mut u8, len: usize) -> String {

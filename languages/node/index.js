@@ -1,3 +1,5 @@
+// This is not yet implemented
+
 const { MemoryDB } = require('../../wasm/pkg/wsmemquery');
 
 console.log(MemoryDB)

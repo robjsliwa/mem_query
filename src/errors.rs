@@ -23,6 +23,9 @@ pub enum Error {
   #[error("Ops In Multipart Key Not Allowed")]
   MQOpNotAllowedInMultipartKey,
 
+  #[error("Serde failed")]
+  SerdeJsonError(#[from] serde_json::Error),
+
   #[error(transparent)]
   IOError(#[from] std::io::Error),
 }

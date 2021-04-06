@@ -70,7 +70,7 @@ fn unset_op_update() -> Result<(), Error> {
   assert_eq!(docs[0]["age"], 21);
   assert_eq!(docs[0]["email"], "test@test.com");
 
-  let docs_updated2 = coll.find_and_update(
+  let _ = coll.find_and_update(
     query!({ "name": "Roy" }),
     update!({ "$unset": { "email": "" }}),
   )?;

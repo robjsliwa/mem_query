@@ -25,7 +25,7 @@ jobs:
     - name: Build WASM
       run: rustup target add wasm32-unknown-unknown && cd wasm && cargo build --target wasm32-unknown-unknown
     - name: Copy WASM to Python folder
-      run: cd wasm && cp target/wasm32-unknown-unknown/debug/wsmemquery.wasm ../examples/python/
+      run: cp wasm/target/wasm32-unknown-unknown/debug/wsmemquery.wasm languages/python/
 
   build-python:
     needs: build

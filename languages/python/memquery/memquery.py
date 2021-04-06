@@ -1,3 +1,14 @@
+"""MemQuery is a library for operating on in-memory documents.
+
+MemQuery is simple library for creating, querying and updating
+in memory documents that are represented as JSON objects 
+and queried using Mongodb like operators.
+
+This is not a database and it is not trying to do any optimizations.
+It is meant for unit tests or simple projects that require small
+in memory document store.
+"""
+
 import wasmtime.loader
 import wsmemquery as instance
 import json
@@ -7,10 +18,29 @@ from membind import write_str, linear_mem_addr, ptr_to_str, result_ptr_to_value
 # memquery API
 
 class Collection:
+  """Collection stores documents.
+
+  Collection documents are stored as JSON objects.
+  """
   def __init__(self, name):
+    """Creates Collection with provided name.
+    
+    Args:
+      name:
+        Collection name.
+    """
     self._name = name
   
   def insert(self, doc):
+    """Add document to this collection.
+
+    Args:
+      doc:
+        JSON object to add to this collection.
+
+    Returns:
+      None if success or throws exception in case of an error.
+    """
     name_ptr, name_len = write_str(instance, self._name)
     docstr = json.dumps(doc)
     doc_ptr, doc_len = write_str(instance, docstr)
@@ -31,6 +61,17 @@ class Collection:
         instance.dealloc(res_ptr, res_len)
 
   def find(self, query):
+    """Find document(s) based on provided query.
+
+    Args:
+      query:
+        JSON object that specifies query criteria.
+
+    Returns:
+      Returns list of JSON objects. If query did not match anything
+      it returns empty list.  Throws exception if there was a problem
+      getting data.
+    """
     name_ptr, name_len = write_str(instance, self._name)
     querystr = json.dumps(query)
     query_ptr, query_len = write_str(instance, querystr)
@@ -50,6 +91,15 @@ class Collection:
     return res_json
 
 def create_collection(name):
+  """Create new collection.
+
+  Args:
+    name:
+      Name of the collection.
+
+  Returns:
+    None on success or throws error if collection could not be created.
+  """
   name_ptr, name_len = write_str(instance, name)
 
   try:
@@ -58,6 +108,16 @@ def create_collection(name):
     raise CreateCollectionFailed(e)
 
 def collection(name):
+  """Get Collection object.
+
+  Args:
+    name:
+      Get collection object specified by name.
+
+  Returns:
+    Instance of Collection object or raises error if collection
+    was not found.
+  """
   name_ptr, name_len = write_str(instance, name)
 
   try:
@@ -69,16 +129,3 @@ def collection(name):
 
   return Collection(name)
 
-
-if __name__ == '__main__':
-  create_collection('TestCollection')
-  create_collection('TestCollection1')
-
-  test_coll = collection('TestCollection')
-  test_coll.insert({ "name": "Tomek" })
-
-  test_coll1 = collection('TestCollection1')
-  test_coll1.insert({ "name": "Tomeczek" })
-
-  res = test_coll.find({ "name": "Tomek" })
-  print(f'Find result: {res}')

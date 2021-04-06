@@ -24,4 +24,15 @@ jobs:
       run: cargo t --verbose --features "sync"
     - name: Build WASM
       run: rustup target add wasm32-unknown-unknown && cd wasm && cargo build --target wasm32-unknown-unknown
+    - name: Copy WASM to Python folder
+      run: cp target/wasm32-unknown-unknown/debug/wsmemquery.wasm ../examples/python/
+
+  build-python:
+    needs: build
+    runs-on: python:3.6
+
+    steps:
+      - name: Unit tests
+        run: cd languages/python && python -m unittest
+
     

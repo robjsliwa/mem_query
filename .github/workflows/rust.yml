@@ -26,20 +26,14 @@ jobs:
       run: rustup target add wasm32-unknown-unknown && cd wasm && cargo build --target wasm32-unknown-unknown
     - name: Copy WASM to Python folder
       run: cp wasm/target/wasm32-unknown-unknown/debug/wsmemquery.wasm languages/python/
-
-  build-python:
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Set up Python 3.x
-        uses: actions/setup-python@v2
-        with:
-          # Semantic version range syntax or exact version of a Python version
-          python-version: '3.6'
-          # Optional - x64 or x86 architecture, defaults to x64
-          architecture: 'x64'
-      - name: Unit tests
-        run: cd languages/python && python -m unittest
+    - name: Set up Python 3.x
+      uses: actions/setup-python@v2
+      with:
+        # Semantic version range syntax or exact version of a Python version
+        python-version: '3.6'
+        # Optional - x64 or x86 architecture, defaults to x64
+        architecture: 'x64'
+    - name: Unit tests
+      run: cd languages/python && python -m unittest
 
     

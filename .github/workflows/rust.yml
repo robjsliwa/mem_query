@@ -33,6 +33,8 @@ jobs:
         python-version: '3.6'
         # Optional - x64 or x86 architecture, defaults to x64
         architecture: 'x64'
+    - name: Install requirements
+      run: cd languages/python && pip install -r requirements.txt
     - name: Unit tests
       run: cd languages/python && python -m unittest
 

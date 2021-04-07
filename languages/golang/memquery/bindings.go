@@ -23,6 +23,12 @@ func init() {
 	}
 }
 
+// type A represents an array of arbitrary types
+type A []interface{}
+
+// type M represents a JSON
+type M map[string]interface{}
+
 // instantiates a wasmer.Instance or returns an error
 func Instance(path string) (*wasmer.Instance, error) {
 	wasmBytes, err := ioutil.ReadFile(path)

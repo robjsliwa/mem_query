@@ -59,7 +59,7 @@ func GetCollection(name string) (*Collection, error) {
 }
 
 // Insert allows consumers to add JSON documents to a collection
-func (c *Collection) Insert(doc map[string]interface{}) error {
+func (c *Collection) Insert(doc interface{}) error {
 	namePtr, nameLen, err := WriteString(c.name)
 	if err != nil {
 		return err
@@ -99,8 +99,28 @@ func (c *Collection) Insert(doc map[string]interface{}) error {
 	return nil
 }
 
+func DeleteCollection(name string) error {
+	namePtr, nameLen, err := WriteString(name)
+	if err != nil {
+		return err
+	}
+	delCollection, err := instance.Exports.GetFunction("delete_collection")
+	if err != nil {
+		return err
+	}
+	res, err := delCollection(namePtr, nameLen)
+	if err != nil {
+		return err
+	}
+	if res == int32(0) {
+		return ErrCollectionNotFound
+	}
+
+	return nil
+}
+
 // Find allows a consumer to execute a query to filter documents in a collection
-func (c *Collection) Find(query map[string]interface{}) (*Result, error) {
+func (c *Collection) Find(query interface{}) (*Result, error) {
 	namePtr, nameLen, err := WriteString(c.name)
 	if err != nil {
 		return nil, err

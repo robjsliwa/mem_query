@@ -2,40 +2,47 @@ name: memquery
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Build
-      run: cargo build --verbose
-    - name: Run async tests
-      run: cargo test --verbose
-    - name: Run sync tests
-      run: cargo t --verbose --features "sync"
-    - name: Build WASM
-      run: rustup target add wasm32-unknown-unknown && cd wasm && cargo build --target wasm32-unknown-unknown
-    - name: Copy WASM to Python folder
-      run: cp wasm/target/wasm32-unknown-unknown/debug/wsmemquery.wasm languages/python/
-    - name: Set up Python 3.x
-      uses: actions/setup-python@v2
-      with:
-        # Semantic version range syntax or exact version of a Python version
-        python-version: '3.6'
-        # Optional - x64 or x86 architecture, defaults to x64
-        architecture: 'x64'
-    - name: Install requirements
-      run: cd languages/python && pip install -r requirements.txt
-    - name: Unit tests
-      run: cd languages/python && python -m unittest
-
-    
+      - uses: actions/checkout@v2
+      - name: Build
+        run: cargo build --verbose
+      - name: Run async tests
+        run: cargo test --verbose
+      - name: Run sync tests
+        run: cargo t --verbose --features "sync"
+      - name: Build WASM
+        run: rustup target add wasm32-unknown-unknown && cd wasm && cargo build --target wasm32-unknown-unknown
+      - name: Copy WASM to Python folder
+        run: cp wasm/target/wasm32-unknown-unknown/debug/wsmemquery.wasm languages/python/
+      - name: Set up Python 3.x
+        uses: actions/setup-python@v2
+        with:
+          # Semantic version range syntax or exact version of a Python version
+          python-version: "3.6"
+          # Optional - x64 or x86 architecture, defaults to x64
+          architecture: "x64"
+      - name: Install requirements
+        run: cd languages/python && pip install -r requirements.txt
+      - name: Unit tests
+        run: cd languages/python && python -m unittest
+      - name: Copy WASM to Go folder
+        run: cp wasm/target/wasm32-unknown-unknown/debug/wsmemquery.wasm languages/golang/memquery/
+      - name: Setup golang
+        uses: actions/setup-go@v2
+        with:
+          go-version: "1.16.2"
+          arch: "x64"
+          platform: "linux"
+      - name: Go unit tests
+        run: cd languages/golang/memquery && go test -v

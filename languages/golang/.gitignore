@@ -1,0 +1,6 @@
+*.wasm
+*.so
+.DS_Store
+
+pkg
+bin

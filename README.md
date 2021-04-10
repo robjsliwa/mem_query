@@ -332,13 +332,13 @@ let memdb = MemDb::new();
 
 # Building and Running Tests
 
-## Build
+## Build Rust Library
 
 To build library:
 
 - cargo build
 
-## Testing
+## Testing Rust Librayr
 
 To test async APIs
 
@@ -347,3 +347,14 @@ To test async APIs
 To test sync APIs
 
 - cargo t --features "sync"
+
+## Building WASM (wsmemquery.wasm)
+
+Add wasm32-unknown-unknown target
+
+- rustup target add wasm32-unknown-unknown
+
+To build memquery as WebAssembly
+
+- cd wasm
+- cargo build --target wasm32-unknown-unknown

@@ -100,4 +100,24 @@ impl Collection {
       .find_and_update(&query, &update)
       .await
   }
+
+  #[cfg(feature = "sync")]
+  pub fn find_and_delete(&self, query: Value) -> Result<Documents, Error> {
+    if !query.is_object() {
+      return Err(Error::MQError(String::from("Query must be a JSON object.")));
+    }
+
+    Engine::with_collection(self.data.clone()).find_and_delete(&query)
+  }
+
+  #[cfg(not(feature = "sync"))]
+  pub async fn find_and_delete(&self, query: Value) -> Result<Documents, Error> {
+    if !query.is_object() {
+      return Err(Error::MQError(String::from("Query must be a JSON object.")));
+    }
+
+    Engine::with_collection(self.data.clone())
+      .find_and_delete(&query)
+      .await
+  }
 }

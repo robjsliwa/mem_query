@@ -115,6 +115,36 @@ impl Engine {
     Ok(documents_updated)
   }
 
+  #[cfg(not(feature = "sync"))]
+  pub async fn find_and_delete(&self, query: &Value) -> Result<Documents, Error> {
+    let mut docs_deleted: Documents = Vec::new();
+    let mut docs_guard = self.docs.lock().await;
+
+    docs_guard.retain(|document| {
+      if self.perform_query(&query, &document).unwrap_or(true) {
+        docs_deleted.push(document.clone());
+        return false;
+      }
+      true
+    });
+    Ok(docs_deleted)
+  }
+
+  #[cfg(feature = "sync")]
+  pub fn find_and_delete(&self, query: &Value) -> Result<Documents, Error> {
+    let mut docs_deleted: Documents = Vec::new();
+    let mut docs_guard = self.docs.lock().unwrap();
+
+    docs_guard.retain(|document| {
+      if self.perform_query(&query, &document).unwrap_or(true) {
+        docs_deleted.push(document.clone());
+        return false;
+      }
+      true
+    });
+    Ok(docs_deleted)
+  }
+
   fn perform_update<'d>(
     &self,
     update: &Value,
@@ -296,6 +326,10 @@ impl Engine {
   fn perform_query(&self, query: &Value, document: &Value) -> Result<bool, Error> {
     let query_obj = query.as_object().unwrap();
     let mut is_found = false;
+
+    if query_obj.keys().len() == 0 {
+      return Ok(true);
+    }
 
     for key in query_obj.keys() {
       is_key_valid_op(key)?;

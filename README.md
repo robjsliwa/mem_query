@@ -338,7 +338,7 @@ To build library:
 
 - cargo build
 
-## Testing Rust Librayr
+## Testing Rust Library
 
 To test async APIs
 

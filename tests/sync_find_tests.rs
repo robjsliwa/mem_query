@@ -587,3 +587,26 @@ fn test_lte_match_embedded_doc() -> Result<(), Error> {
 
   Ok(())
 }
+
+#[test]
+#[cfg(feature = "sync")]
+fn test_find_all_docs() -> Result<(), Error> {
+  let memdb = MemDb::new();
+  memdb.create_collection("TestCollection");
+  let coll = memdb.collection("TestCollection")?;
+  coll.insert(
+    doc!({ "item": { "name": "ab", "code": 123 }, "qty": 15, "tags": [ "A", "B", "C" ] }),
+  )?;
+  coll.insert(doc!({ "item": { "name": "cd", "code": 123 }, "qty": 20, "tags": [ "B" ] }))?;
+  coll.insert(doc!({ "item": { "name": "ij", "code": 456 }, "qty": 25, "tags": [ "A", "B" ] }))?;
+  coll.insert(doc!({ "item": { "name": "xy", "code": 456 }, "qty": 30, "tags": [ "B", "A" ] }))?;
+  coll.insert(
+    doc!({ "item": { "name": "mn", "code": 000 }, "qty": 20, "tags": [ [ "A", "B" ], "C" ] }),
+  )?;
+
+  let docs = coll.find(query!({}))?;
+
+  assert_eq!(docs.len(), 5);
+
+  Ok(())
+}

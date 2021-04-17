@@ -715,3 +715,34 @@ async fn test_lte_match_embedded_doc() -> Result<(), Error> {
 
   Ok(())
 }
+
+#[tokio::test]
+#[cfg(not(feature = "sync"))]
+async fn test_find_all_docs() -> Result<(), Error> {
+  let memdb = MemDb::new();
+  memdb.create_collection("TestCollection").await;
+  let coll = memdb.collection("TestCollection").await?;
+  coll
+    .insert(doc!({ "item": { "name": "ab", "code": 123 }, "qty": 15, "tags": [ "A", "B", "C" ] }))
+    .await?;
+  coll
+    .insert(doc!({ "item": { "name": "cd", "code": 123 }, "qty": 20, "tags": [ "B" ] }))
+    .await?;
+  coll
+    .insert(doc!({ "item": { "name": "ij", "code": 456 }, "qty": 25, "tags": [ "A", "B" ] }))
+    .await?;
+  coll
+    .insert(doc!({ "item": { "name": "xy", "code": 456 }, "qty": 30, "tags": [ "B", "A" ] }))
+    .await?;
+  coll
+    .insert(
+      doc!({ "item": { "name": "mn", "code": 000 }, "qty": 20, "tags": [ [ "A", "B" ], "C" ] }),
+    )
+    .await?;
+
+  let docs = coll.find(query!({})).await?;
+
+  assert_eq!(docs.len(), 5);
+
+  Ok(())
+}

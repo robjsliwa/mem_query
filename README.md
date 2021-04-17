@@ -167,6 +167,12 @@ let docs = coll.find(query!({ "qty": { "$lt": 20 } })).await?;
 let docs = coll.find(query!({ "qty": { "$lte": 20 } })).await?;
 ```
 
+### Find All Documents
+
+```
+let docs = coll.find(query!({})).await?;
+```
+
 ## Update Document
 
 This shows examples how to use `find_and_update` API.
@@ -299,6 +305,23 @@ assert_eq!(docs.len(), 1);
 assert_eq!(docs[0]["age"], 100.0);
 ```
 
+# Delete Documents
+
+```
+let memdb = MemDb::new();
+memdb.create_collection("TestCollection").await;
+let coll = memdb.collection("TestCollection").await?;
+coll.insert(doc!({ "name": "Rob", "age": 25 })).await?;
+coll.insert(doc!({ "name": "Bob", "age": 20 })).await?;
+coll.insert(doc!({ "name": "Tom", "age": 30 })).await?;
+
+let docs = coll.find_and_delete(query!({})).await?;
+assert_eq!(docs.len(), 3);
+
+let docs_remaining = coll.find(query!({})).await?;
+assert_eq!(docs_remaining.len(), 0);
+```
+
 # Sync API
 
 The sync API are found in `sync_memdb` and `sync_collection` modules.  To use sync API you need to enable it using `sync` feature flag.
@@ -338,7 +361,7 @@ To build library:
 
 - cargo build
 
-## Testing Rust Librayr
+## Testing Rust Library
 
 To test async APIs
 

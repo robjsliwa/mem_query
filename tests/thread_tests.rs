@@ -1,5 +1,6 @@
 #[cfg(feature = "sync")]
 use memquery::{doc, errors::Error, memdb::MemDb, query, update};
+#[cfg(feature = "sync")]
 use std::thread;
 
 #[test]

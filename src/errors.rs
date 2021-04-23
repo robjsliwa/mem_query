@@ -1,5 +1,8 @@
+//! Errors reported by mem_query API.
+
 use thiserror::Error;
 
+/// This represents all possible errors that can occur when calling mem_query API
 #[derive(Error, Debug)]
 pub enum Error {
   #[error("MemQuery Error")]

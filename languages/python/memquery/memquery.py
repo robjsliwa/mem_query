@@ -92,6 +92,77 @@ class Collection:
             raise FindCollectionError(e)
 
         return res_json
+    
+    def find_and_update(self, query, update):
+        """Find and update document(s) based on provided query with values in update variable.
+
+        Args:
+          query:
+            JSON object that specifies query criteria.
+
+        Returns:
+          Returns number of documents updated. If query did not match anything
+          it returns 0.  Throws exception if there was a problem
+          getting data.
+        """
+        name_ptr, name_len = write_str(instance, self._name)
+        querystr = json.dumps(query)
+        query_ptr, query_len = write_str(instance, querystr)
+        updatestr = json.dumps(update)
+        update_ptr, update_len = write_str(instance, updatestr)
+        res_ptr = None
+        res_len = 0
+
+        res_json = []
+
+        try:
+            res_ptr = instance.find_and_update(
+              name_ptr,
+              name_len,
+              query_ptr,
+              query_len,
+              update_ptr,
+              update_len
+            )
+            number_updated, err = result_ptr_to_value(
+                linear_mem_addr(instance), res_ptr)
+            if err is not None:
+                raise FindCollectionError(err)
+        except Exception as e:
+            raise FindCollectionError(e)
+
+        return number_updated
+    
+    def find_and_delete(self, query):
+        """Find and delete document(s) based on provided query.
+
+        Args:
+          query:
+            JSON object that specifies query criteria.
+
+        Returns:
+          Returns list of JSON objects that were deleted. If query 
+          did not match anything it returns empty list.  Throws exception
+          if there was a problem getting data.
+        """
+        name_ptr, name_len = write_str(instance, self._name)
+        querystr = json.dumps(query)
+        query_ptr, query_len = write_str(instance, querystr)
+        res_ptr = None
+        res_len = 0
+
+        res_json = []
+
+        try:
+            res_ptr = instance.find_and_delete(name_ptr, name_len, query_ptr, query_len)
+            res_json, err = result_ptr_to_value(
+                linear_mem_addr(instance), res_ptr)
+            if err is not None:
+                raise FindCollectionError(err)
+        except Exception as e:
+            raise FindCollectionError(e)
+
+        return res_json
 
 
 def create_collection(name):

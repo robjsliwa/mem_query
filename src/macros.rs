@@ -4,7 +4,7 @@
 /// This is equivalent to serde_json::json but also adds
 /// _id field with uuid
 ///
-/// ```
+/// ```ignore
 /// use memquery::{doc, errors::Error, memdb::MemDb, query};
 ///
 /// let memdb = MemDb::new();
@@ -28,7 +28,7 @@ macro_rules! doc {
 /// representing query spec.
 ///
 ///
-/// ```
+/// ```ignore
 /// use memquery::{doc, errors::Error, memdb::MemDb, query};
 ///
 /// let memdb = MemDb::new();
@@ -48,7 +48,7 @@ macro_rules! query {
 /// representing update value for find_and_update API.
 ///
 ///
-/// ```
+/// ```ignore
 /// use memquery::{doc, errors::Error, memdb::MemDb, query};
 ///
 /// let memdb = MemDb::new();

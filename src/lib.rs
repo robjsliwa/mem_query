@@ -10,7 +10,7 @@
 //!
 //! ## Create Database
 //!
-//! ```
+//! ```ignore
 //! use memquery::{doc, errors::Error, memdb::MemDb, query};
 //!
 //! let memdb = MemDb::new();
@@ -19,25 +19,25 @@
 //!
 //! ## Create Collection
 //!
-//! ```
+//! ```ignore
 //! memdb.create_collection("TestCollection").await;
 //! ```
 //!
 //! ## Get Collection Handle
 //!
-//! ```
+//! ```ignore
 //! let coll = memdb.collection("TestCollection").await?;
 //! ```
 //!
 //! ## Insert Document
 //!
-//! ```
+//! ```ignore
 //! coll.insert(doc!({ "name": "Tom", "age": 25 })).await?;
 //! ```
 //!
 //! ## Find Document
 //!
-//! ```
+//! ```ignore
 //! let docs = coll.find(query!({"name": "Tom", "age": 25})).await?;
 //!
 //! assert_eq!(docs.len(), 1);
@@ -48,7 +48,7 @@
 //!
 //! ### $and
 //!
-//! ```
+//! ```ignore
 //! let docs = coll
 //!     .find(query!({ "$and": [{ "name": "Bob" }, { "age": 20 }] }))
 //!     .await?;
@@ -56,7 +56,7 @@
 //!
 //! ### $or
 //!
-//! ```
+//! ```ignore
 //! let docs = coll
 //!     .find(query!({ "$or": [{ "name": "Bob" }, { "age": 30 }] }))
 //!     .await?;
@@ -68,19 +68,19 @@
 //!
 //! Compare on field:
 //!
-//! ```
+//! ```ignore
 //! let docs = coll.find(query!({ "qty": { "$eq": 20 } })).await?;
 //! ```
 //!
 //! Or in embedded document:
 //!
-//! ```
+//! ```ignore
 //! let docs = coll.find(query!({ "item.name": { "$eq": "ab" } })).await?;
 //! ```
 //!
 //! You can also compare array with embedded arrays:
 //!
-//! ```
+//! ```ignore
 //! coll
 //!     .insert(doc!({ "item": { "name": "ab", "code": "123" }, "qty": 15, "tags": [ "A", "B", "C" ] }))
 //!     .await?;
@@ -110,7 +110,7 @@
 //!
 //! Or value in the embedded array:
 //!
-//! ```
+//! ```ignore
 //! coll
 //!     .insert(doc!({ "item": { "name": "ab", "code": "123" }, "qty": 15, "tags": [ "A", "B", "C" ] }))
 //!     .await?;
@@ -140,31 +140,31 @@
 //!
 //! ### $gt
 //!
-//! ```
+//! ```ignore
 //! let docs = coll.find(query!({ "qty": { "$gt": 20 } })).await?;
 //! ```
 //!
 //! ### $gte
 //!
-//! ```
+//! ```ignore
 //! let docs = coll.find(query!({ "qty": { "$gte": 20 } })).await?;
 //! ```
 //!
 //! ### $lt
 //!
-//! ```
+//! ```ignore
 //! let docs = coll.find(query!({ "qty": { "$lt": 20 } })).await?;
 //! ```
 //!
 //! ### $lte
 //!
-//! ```
+//! ```ignore
 //! let docs = coll.find(query!({ "qty": { "$lte": 20 } })).await?;
 //! ```
 //!
 //! ### Find All Documents
 //!
-//! ```
+//! ```ignore
 //! let docs = coll.find(query!({})).await?;
 //! ```
 //!
@@ -174,7 +174,7 @@
 //!
 //! Update document by replacing entire document:
 //!
-//! ```
+//! ```ignore
 //! let memdb = MemDb::new();
 //! memdb.create_collection("TestCollection").await;
 //! let coll = memdb.collection("TestCollection").await?;
@@ -198,7 +198,7 @@
 //!
 //! Update specific field(s) in the document:
 //!
-//! ```
+//! ```ignore
 //! let coll = memdb.collection("TestCollection").await?;
 //! coll.insert(doc!({ "name": "Rob", "age": 25 })).await?;
 //! coll.insert(doc!({ "name": "Bob", "age": 20 })).await?;
@@ -221,7 +221,7 @@
 //!
 //! Update document to remove field:
 //!
-//! ```
+//! ```ignore
 //! let memdb = MemDb::new();
 //! memdb.create_collection("TestCollection").await;
 //! let coll = memdb.collection("TestCollection").await?;
@@ -260,7 +260,7 @@
 //!
 //! Increment value of the field in the document:
 //!
-//! ```
+//! ```ignore
 //! let memdb = MemDb::new();
 //! memdb.create_collection("TestCollection").await;
 //! let coll = memdb.collection("TestCollection").await?;
@@ -281,7 +281,7 @@
 //!
 //! Multiply value of a field in the document:
 //!
-//! ```
+//! ```ignore
 //! let memdb = MemDb::new();
 //! memdb.create_collection("TestCollection").await;
 //! let coll = memdb.collection("TestCollection").await?;
@@ -302,7 +302,7 @@
 //!
 //! # Delete Documents
 //!
-//! ```
+//! ```ignore
 //! let memdb = MemDb::new();
 //! memdb.create_collection("TestCollection").await;
 //! let coll = memdb.collection("TestCollection").await?;
@@ -321,7 +321,7 @@
 //!
 //! The sync API are found in `sync_memdb` and `sync_collection` modules.  To use sync API you need to enable it using `sync` feature flag.
 //!
-//! ```
+//! ```ignore
 //! use memquery::{doc, errors::Error, query, sync_memdb::MemDb};
 //!
 //!

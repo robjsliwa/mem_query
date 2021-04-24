@@ -28,7 +28,7 @@ impl MemDb {
 
   /// Creates new collection.
   ///
-  /// ```
+  /// ```ignore
   /// use memquery::{doc, errors::Error, memdb::MemDb, query};
   ///
   /// let memdb = MemDb::new();
@@ -46,7 +46,7 @@ impl MemDb {
 
   /// Retrieves collection by name.
   ///
-  /// ```
+  /// ```ignore
   /// use memquery::{doc, errors::Error, memdb::MemDb, query};
   ///
   /// let memdb = MemDb::new();
@@ -62,7 +62,7 @@ impl MemDb {
 
   /// Delete collection by name.
   ///
-  /// ```
+  /// ```ignore
   /// use memquery::{doc, errors::Error, memdb::MemDb, query};
   ///
   /// let memdb = MemDb::new();
@@ -80,7 +80,7 @@ impl MemDb {
 
   /// Creates new collection.
   ///
-  /// ```
+  /// ```ignore
   /// use memquery::{doc, errors::Error, query, sync_memdb::MemDb};
   ///
   /// let memdb = MemDb::new();
@@ -98,7 +98,7 @@ impl MemDb {
 
   /// Retrieves collection by name.
   ///
-  /// ```
+  /// ```ignore
   /// use memquery::{doc, errors::Error, query, sync_memdb::MemDb};
   ///
   /// let memdb = MemDb::new();
@@ -114,7 +114,7 @@ impl MemDb {
 
   /// Delete collection by name.
   ///
-  /// ```
+  /// ```ignore
   /// use memquery::{doc, errors::Error, query, sync_memdb::MemDb};
   ///
   /// let memdb = MemDb::new();

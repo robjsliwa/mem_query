@@ -29,7 +29,7 @@ impl Collection {
 
   /// Insert new document.
   ///
-  /// ```
+  /// ```ignore
   /// coll.insert(doc!({ "name": "Tom", "age": 25 }))?;
   /// ```
   #[cfg(feature = "sync")]
@@ -47,7 +47,7 @@ impl Collection {
 
   /// Insert new document.
   ///
-  /// ```
+  /// ```ignore
   /// coll.insert(doc!({ "name": "Tom", "age": 25 })).await?;
   /// ```
   #[cfg(not(feature = "sync"))]
@@ -65,7 +65,7 @@ impl Collection {
 
   /// Return documents that match specified criteria.
   ///
-  /// ```
+  /// ```ignore
   /// let docs = coll.find(query!({"name": "Tom", "age": 25}))?;
   /// ```
   #[cfg(feature = "sync")]
@@ -79,7 +79,7 @@ impl Collection {
 
   /// Return documents that match specified criteria.
   ///
-  /// ```
+  /// ```ignore
   /// let docs = coll.find(query!({"name": "Tom", "age": 25})).await?;
   /// ```
   #[cfg(not(feature = "sync"))]
@@ -95,7 +95,7 @@ impl Collection {
 
   /// Updates documents that match search criteria.
   ///
-  /// ```
+  /// ```ignore
   /// let docs_updated = coll
   ///   .find_and_update(
   ///   query!({"name": "Bob"}),
@@ -119,7 +119,7 @@ impl Collection {
 
   /// Updates documents that match search criteria.
   ///
-  /// ```
+  /// ```ignore
   /// let docs_updated = coll
   ///   .find_and_update(
   ///   query!({"name": "Bob"}),
@@ -146,7 +146,7 @@ impl Collection {
 
   /// Delete documents that match search criteria.
   ///
-  /// ```
+  /// ```ignore
   /// let docs = coll.find_and_delete(query!({"name": "Bob"}))?;
   /// ```
   #[cfg(feature = "sync")]
@@ -160,7 +160,7 @@ impl Collection {
 
   /// Delete documents that match search criteria.
   ///
-  /// ```
+  /// ```ignore
   /// let docs = coll.find_and_delete(query!({"name": "Bob"})).await?;
   /// ```
   #[cfg(not(feature = "sync"))]

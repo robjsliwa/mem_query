@@ -1,3 +1,8 @@
+//! MemDb allows creation, deletion and retrieval of collections of documents.
+//!
+//! By default MemDb API is async.  Use `sync` features to enable synchronous API.
+//!
+
 use super::{collection::Collection, errors::Error};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -8,17 +13,27 @@ use std::sync::Mutex;
 #[cfg(not(feature = "sync"))]
 use tokio::sync::Mutex;
 
+/// Stores database collections.
 pub struct MemDb {
   collections: Arc<Mutex<HashMap<String, Collection>>>,
 }
 
 impl MemDb {
+  /// Makes a new database.
   pub fn new() -> MemDb {
     MemDb {
       collections: Arc::new(Mutex::new(HashMap::new())),
     }
   }
 
+  /// Creates new collection.
+  ///
+  /// ```ignore
+  /// use memquery::{doc, errors::Error, memdb::MemDb, query};
+  ///
+  /// let memdb = MemDb::new();
+  /// memdb.create_collection("TestCollection").await;
+  /// ```
   #[cfg(not(feature = "sync"))]
   pub async fn create_collection(&self, name: &str) {
     let new_collection = Collection::new();
@@ -29,6 +44,14 @@ impl MemDb {
       .insert(name.to_string(), new_collection);
   }
 
+  /// Retrieves collection by name.
+  ///
+  /// ```ignore
+  /// use memquery::{doc, errors::Error, memdb::MemDb, query};
+  ///
+  /// let memdb = MemDb::new();
+  /// let coll = memdb.collection("TestCollection").await?;
+  /// ```
   #[cfg(not(feature = "sync"))]
   pub async fn collection(&self, collection_name: &str) -> Result<Collection, Error> {
     match self.collections.lock().await.get(collection_name) {
@@ -37,6 +60,14 @@ impl MemDb {
     }
   }
 
+  /// Delete collection by name.
+  ///
+  /// ```ignore
+  /// use memquery::{doc, errors::Error, memdb::MemDb, query};
+  ///
+  /// let memdb = MemDb::new();
+  /// let coll = memdb.delete_collection("TestCollection").await?;
+  /// ```
   #[cfg(not(feature = "sync"))]
   pub async fn delete_collection(&self, name: &str) -> Result<Collection, Error> {
     self
@@ -47,6 +78,14 @@ impl MemDb {
       .ok_or(Error::MQCollectionNotFound)
   }
 
+  /// Creates new collection.
+  ///
+  /// ```ignore
+  /// use memquery::{doc, errors::Error, query, sync_memdb::MemDb};
+  ///
+  /// let memdb = MemDb::new();
+  /// memdb.create_collection("TestCollection");
+  /// ```
   #[cfg(feature = "sync")]
   pub fn create_collection(&self, name: &str) {
     let new_collection = Collection::new();
@@ -57,6 +96,14 @@ impl MemDb {
       .insert(name.to_string(), new_collection);
   }
 
+  /// Retrieves collection by name.
+  ///
+  /// ```ignore
+  /// use memquery::{doc, errors::Error, query, sync_memdb::MemDb};
+  ///
+  /// let memdb = MemDb::new();
+  /// let coll = memdb.collection("TestCollection")?;
+  /// ```
   #[cfg(feature = "sync")]
   pub fn collection(&self, collection_name: &str) -> Result<Collection, Error> {
     match self.collections.lock().unwrap().get(collection_name) {
@@ -65,6 +112,14 @@ impl MemDb {
     }
   }
 
+  /// Delete collection by name.
+  ///
+  /// ```ignore
+  /// use memquery::{doc, errors::Error, query, sync_memdb::MemDb};
+  ///
+  /// let memdb = MemDb::new();
+  /// let coll = memdb.delete_collection("TestCollection")?;
+  /// ```
   #[cfg(feature = "sync")]
   pub fn delete_collection(&self, name: &str) -> Result<Collection, Error> {
     self

@@ -58,7 +58,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         with:
           name: wsmemquery.wasm
-          path: wasm/target/wasm32-unknown-unknown/release
+          path: ${{ github.workspace }}/wasm/target/wasm32-unknown-unknown/release
         
   publish:
     name: Publish Crate

@@ -14,7 +14,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  CARGO_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
+  CARGO_TOKEN: ${{ secrets.CARGO_TOKEN }}
 
 jobs:
   build:

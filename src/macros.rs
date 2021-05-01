@@ -4,13 +4,18 @@
 /// This is equivalent to serde_json::json but also adds
 /// _id field with uuid
 ///
-/// ```ignore
-/// use memquery::{doc, errors::Error, memdb::MemDb, query};
+/// ```
+/// # #[cfg(not(feature = "sync"))]
+/// use memquery::{doc, errors::Error, memdb::MemDb};
 ///
-/// let memdb = MemDb::new();
-/// let coll = memdb.collection("TestCollection").await?;
+/// # #[cfg(not(feature = "sync"))]
+/// async fn play() -> Result<(), Error> {
+///   let memdb = MemDb::new();
+///   let coll = memdb.collection("TestCollection").await?;
 ///
-/// coll.insert(doc!({ "name": "Tom", "age": 25 })).await?;
+///   coll.insert(doc!({ "name": "Tom", "age": 25 })).await?;
+///   Ok(())
+/// }
 /// ```
 #[macro_export]
 macro_rules! doc {
@@ -28,14 +33,19 @@ macro_rules! doc {
 /// representing query spec.
 ///
 ///
-/// ```ignore
+/// ```
+/// # #[cfg(not(feature = "sync"))]
 /// use memquery::{doc, errors::Error, memdb::MemDb, query};
 ///
-/// let memdb = MemDb::new();
-/// let coll = memdb.collection("TestCollection").await?;
+/// # #[cfg(not(feature = "sync"))]
+/// async fn play() -> Result<(), Error> {
+///   let memdb = MemDb::new();
+///   let coll = memdb.collection("TestCollection").await?;
 ///
-/// coll.insert(doc!({ "name": "Tom", "age": 25 })).await?;
-/// let docs = coll.find(query!({"name": "Tom", "age": 25})).await?;
+///   coll.insert(doc!({ "name": "Tom", "age": 25 })).await?;
+///   let docs = coll.find(query!({"name": "Tom", "age": 25})).await?;
+///   Ok(())
+/// }
 /// ```
 #[macro_export]
 macro_rules! query {
@@ -48,19 +58,24 @@ macro_rules! query {
 /// representing update value for find_and_update API.
 ///
 ///
-/// ```ignore
-/// use memquery::{doc, errors::Error, memdb::MemDb, query};
+/// ```
+/// # #[cfg(not(feature = "sync"))]
+/// use memquery::{doc, errors::Error, memdb::MemDb, query, update};
 ///
-/// let memdb = MemDb::new();
-/// let coll = memdb.collection("TestCollection").await?;
+/// # #[cfg(not(feature = "sync"))]
+/// async fn play() -> Result<(), Error> {
+///   let memdb = MemDb::new();
+///   let coll = memdb.collection("TestCollection").await?;
 ///
-/// coll.insert(doc!({ "name": "Tom", "age": 25 })).await?;
-/// let docs_updated = coll
-///  .find_and_update(
-///    query!({ "name": "Tom" }),
-///    update!({ "$set": { "name": "Roy", "age": 21, "email": "test@test.com" }}),
-///  )
-///  .await?;
+///   coll.insert(doc!({ "name": "Tom", "age": 25 })).await?;
+///   let docs_updated = coll
+///     .find_and_update(
+///     query!({ "name": "Tom" }),
+///     update!({ "$set": { "name": "Roy", "age": 21, "email": "test@test.com" }}),
+///   )
+///   .await?;
+///   Ok(())
+/// }
 /// ```
 #[macro_export]
 macro_rules! update {

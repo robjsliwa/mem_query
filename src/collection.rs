@@ -29,8 +29,17 @@ impl Collection {
 
   /// Insert new document.
   ///
-  /// ```ignore
-  /// coll.insert(doc!({ "name": "Tom", "age": 25 }))?;
+  /// # #[cfg(feature = "sync")]
+  /// use memquery::{doc, errors::Error, memdb::MemDb, query};
+  ///
+  /// # #[cfg(feature = "sync")]
+  /// fn play() -> Result<(), Error> {
+  ///   let memdb = MemDb::new();
+  ///   memdb.create_collection("TestCollection");
+  ///   let coll = memdb.collection("TestCollection")?;
+  ///   coll.insert(doc!({ "name": "Tom", "age": 25 }))?;
+  ///   Ok(())
+  /// }
   /// ```
   #[cfg(feature = "sync")]
   pub fn insert(&self, document: Value) -> Result<(), Error> {
@@ -45,10 +54,20 @@ impl Collection {
     Ok(())
   }
 
-  /// Insert new document.
+  /// Insert new document (async).
   ///
-  /// ```ignore
-  /// coll.insert(doc!({ "name": "Tom", "age": 25 })).await?;
+  /// ```
+  /// # #[cfg(not(feature = "sync"))]
+  /// use memquery::{doc, errors::Error, memdb::MemDb, query};
+  ///
+  /// # #[cfg(not(feature = "sync"))]
+  /// async fn play() -> Result<(), Error> {
+  ///   let memdb = MemDb::new();
+  ///   memdb.create_collection("TestCollection").await;
+  ///   let coll = memdb.collection("TestCollection").await?;
+  ///   coll.insert(doc!({ "name": "Tom", "age": 25 })).await?;
+  ///   Ok(())
+  /// }
   /// ```
   #[cfg(not(feature = "sync"))]
   pub async fn insert(&self, document: Value) -> Result<(), Error> {
@@ -65,8 +84,18 @@ impl Collection {
 
   /// Return documents that match specified criteria.
   ///
-  /// ```ignore
-  /// let docs = coll.find(query!({"name": "Tom", "age": 25}))?;
+  /// # #[cfg(feature = "sync")]
+  /// use memquery::{doc, errors::Error, memdb::MemDb, query};
+  ///
+  /// # #[cfg(feature = "sync")]
+  /// fn play() -> Result<(), Error> {
+  ///   let memdb = MemDb::new();
+  ///   memdb.create_collection("TestCollection");
+  ///   let coll = memdb.collection("TestCollection")?;
+  ///   coll.insert(doc!({ "name": "Tom", "age": 25 }))?;
+  ///   let docs = coll.find(query!({"name": "Tom", "age": 25}))?;
+  ///   Ok(())
+  /// }
   /// ```
   #[cfg(feature = "sync")]
   pub fn find(&self, query: Value) -> Result<Documents, Error> {
@@ -77,10 +106,21 @@ impl Collection {
     Engine::with_collection(self.data.clone()).find(&query)
   }
 
-  /// Return documents that match specified criteria.
+  /// Return documents that match specified criteria (async).
   ///
-  /// ```ignore
-  /// let docs = coll.find(query!({"name": "Tom", "age": 25})).await?;
+  /// ```
+  /// # #[cfg(not(feature = "sync"))]
+  /// use memquery::{doc, errors::Error, memdb::MemDb, query};
+  ///
+  /// # #[cfg(not(feature = "sync"))]
+  /// async fn play() -> Result<(), Error> {
+  ///   let memdb = MemDb::new();
+  ///   memdb.create_collection("TestCollection").await;
+  ///   let coll = memdb.collection("TestCollection").await?;
+  ///   coll.insert(doc!({ "name": "Tom", "age": 25 })).await?;
+  ///   let docs = coll.find(query!({"name": "Tom", "age": 25})).await?;
+  ///   Ok(())
+  /// }
   /// ```
   #[cfg(not(feature = "sync"))]
   pub async fn find(&self, query: Value) -> Result<Documents, Error> {
@@ -95,12 +135,23 @@ impl Collection {
 
   /// Updates documents that match search criteria.
   ///
-  /// ```ignore
-  /// let docs_updated = coll
-  ///   .find_and_update(
-  ///   query!({"name": "Bob"}),
-  ///   update!({"nickname": "Bobcat", "voice": "meow"}),
-  /// )?;
+  /// ```
+  /// # #[cfg(feature = "sync")]
+  /// use memquery::{doc, errors::Error, memdb::MemDb, query, update};
+  ///
+  /// # #[cfg(feature = "sync")]
+  /// fn play() -> Result<(), Error> {
+  ///   let memdb = MemDb::new();
+  ///   memdb.create_collection("TestCollection");
+  ///   let coll = memdb.collection("TestCollection")?;
+  ///   coll.insert(doc!({ "name": "Tom", "age": 25 }))?;
+  ///   let docs_updated = coll
+  ///     .find_and_update(
+  ///     query!({"name": "Tom"}),
+  ///     update!({"nickname": "Bobcat", "voice": "meow"}),
+  ///   )?;
+  ///   Ok(())
+  /// }
   /// ```
   #[cfg(feature = "sync")]
   pub fn find_and_update(&self, query: Value, update: Value) -> Result<u64, Error> {
@@ -119,13 +170,24 @@ impl Collection {
 
   /// Updates documents that match search criteria.
   ///
-  /// ```ignore
-  /// let docs_updated = coll
-  ///   .find_and_update(
-  ///   query!({"name": "Bob"}),
-  ///   update!({"nickname": "Bobcat", "voice": "meow"}),
-  /// )
-  /// .await?;
+  /// ```
+  /// # #[cfg(not(feature = "sync"))]
+  /// use memquery::{doc, errors::Error, memdb::MemDb, query, update};
+  ///
+  /// # #[cfg(not(feature = "sync"))]
+  /// async fn play() -> Result<(), Error> {
+  ///   let memdb = MemDb::new();
+  ///   memdb.create_collection("TestCollection").await;
+  ///   let coll = memdb.collection("TestCollection").await?;
+  ///   coll.insert(doc!({ "name": "Tom", "age": 25 })).await?;
+  ///   let docs_updated = coll
+  ///     .find_and_update(
+  ///     query!({"name": "Tom"}),
+  ///     update!({"nickname": "Bobcat", "voice": "meow"}),
+  ///   )
+  ///   .await?;
+  ///   Ok(())
+  /// }
   /// ```
   #[cfg(not(feature = "sync"))]
   pub async fn find_and_update(&self, query: Value, update: Value) -> Result<u64, Error> {
@@ -146,8 +208,19 @@ impl Collection {
 
   /// Delete documents that match search criteria.
   ///
-  /// ```ignore
-  /// let docs = coll.find_and_delete(query!({"name": "Bob"}))?;
+  /// ```
+  /// # #[cfg(feature = "sync")]
+  /// use memquery::{doc, errors::Error, memdb::MemDb, query};
+  ///
+  /// # #[cfg(feature = "sync")]
+  /// fn play() -> Result<(), Error> {
+  ///   let memdb = MemDb::new();
+  ///   memdb.create_collection("TestCollection");
+  ///   let coll = memdb.collection("TestCollection")?;
+  ///   coll.insert(doc!({ "name": "Tom", "age": 25 }))?;
+  ///   let docs = coll.find_and_delete(query!({"name": "Tom"}))?;
+  ///   Ok(())
+  /// }
   /// ```
   #[cfg(feature = "sync")]
   pub fn find_and_delete(&self, query: Value) -> Result<Documents, Error> {
@@ -160,8 +233,19 @@ impl Collection {
 
   /// Delete documents that match search criteria.
   ///
-  /// ```ignore
-  /// let docs = coll.find_and_delete(query!({"name": "Bob"})).await?;
+  /// ```
+  /// # #[cfg(not(feature = "sync"))]
+  /// use memquery::{doc, errors::Error, memdb::MemDb, query};
+  ///
+  /// # #[cfg(not(feature = "sync"))]
+  /// async fn play() -> Result<(), Error> {
+  ///   let memdb = MemDb::new();
+  ///   memdb.create_collection("TestCollection").await;
+  ///   let coll = memdb.collection("TestCollection").await?;
+  ///   coll.insert(doc!({ "name": "Tom", "age": 25 })).await?;
+  ///   let docs = coll.find_and_delete(query!({"name": "Tom"})).await?;
+  ///   Ok(())
+  /// }
   /// ```
   #[cfg(not(feature = "sync"))]
   pub async fn find_and_delete(&self, query: Value) -> Result<Documents, Error> {

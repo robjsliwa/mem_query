@@ -6,7 +6,7 @@ edition = "2018"
 description = "MemQuery is simple library for creating, querying, and updating in memory documents that are represented as JSON objects and queried using Mongodb like operators."
 readme = "README.md"
 repository = "https://github.com/robjsliwa/mem_query"
-documentation = "https://docs.rs/memquery/0.1.1/memquery"
+documentation = "https://docs.rs/memquery"
 license = "MIT"
 keywords = ["inmemory", "query", "database", "json", "nosql"]
 

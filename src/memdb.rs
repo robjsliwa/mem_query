@@ -26,13 +26,18 @@ impl MemDb {
     }
   }
 
-  /// Creates new collection.
+  /// Creates new collection (async).
   ///
-  /// ```ignore
+  /// ```
+  /// # #[cfg(not(feature = "sync"))]
   /// use memquery::{doc, errors::Error, memdb::MemDb, query};
   ///
-  /// let memdb = MemDb::new();
-  /// memdb.create_collection("TestCollection").await;
+  /// # #[cfg(not(feature = "sync"))]
+  /// async fn play() -> Result<(), Error> {
+  ///   let memdb = MemDb::new();
+  ///   memdb.create_collection("TestCollection").await;
+  ///   Ok(())
+  /// }
   /// ```
   #[cfg(not(feature = "sync"))]
   pub async fn create_collection(&self, name: &str) {
@@ -44,13 +49,19 @@ impl MemDb {
       .insert(name.to_string(), new_collection);
   }
 
-  /// Retrieves collection by name.
+  /// Retrieves collection by name (async).
   ///
-  /// ```ignore
+  /// ```
+  /// # #[cfg(not(feature = "sync"))]
   /// use memquery::{doc, errors::Error, memdb::MemDb, query};
   ///
-  /// let memdb = MemDb::new();
-  /// let coll = memdb.collection("TestCollection").await?;
+  /// # #[cfg(not(feature = "sync"))]
+  /// async fn play() -> Result<(), Error> {
+  ///   let memdb = MemDb::new();
+  ///   memdb.create_collection("TestCollection").await;
+  ///   let coll = memdb.collection("TestCollection").await?;
+  ///   Ok(())
+  /// }
   /// ```
   #[cfg(not(feature = "sync"))]
   pub async fn collection(&self, collection_name: &str) -> Result<Collection, Error> {
@@ -60,13 +71,20 @@ impl MemDb {
     }
   }
 
-  /// Delete collection by name.
+  /// Delete collection by name (async).
   ///
-  /// ```ignore
+  /// ```
+  /// # #[cfg(not(feature = "sync"))]
   /// use memquery::{doc, errors::Error, memdb::MemDb, query};
   ///
-  /// let memdb = MemDb::new();
-  /// let coll = memdb.delete_collection("TestCollection").await?;
+  /// # #[cfg(not(feature = "sync"))]
+  /// async fn play() -> Result<(), Error> {
+  ///   let memdb = MemDb::new();
+  ///   memdb.create_collection("TestCollection").await;
+  ///   let coll = memdb.collection("TestCollection").await?;
+  ///   let _ = memdb.delete_collection("TestCollection").await?;
+  ///   Ok(())
+  /// }
   /// ```
   #[cfg(not(feature = "sync"))]
   pub async fn delete_collection(&self, name: &str) -> Result<Collection, Error> {
@@ -80,11 +98,16 @@ impl MemDb {
 
   /// Creates new collection.
   ///
-  /// ```ignore
-  /// use memquery::{doc, errors::Error, query, sync_memdb::MemDb};
+  /// ```
+  /// # #[cfg(feature = "sync")]
+  /// use memquery::{doc, errors::Error, memdb::MemDb, query};
   ///
-  /// let memdb = MemDb::new();
-  /// memdb.create_collection("TestCollection");
+  /// # #[cfg(feature = "sync")]
+  /// fn play() -> Result<(), Error> {
+  ///   let memdb = MemDb::new();
+  ///   memdb.create_collection("TestCollection");
+  ///   Ok(())
+  /// }
   /// ```
   #[cfg(feature = "sync")]
   pub fn create_collection(&self, name: &str) {
@@ -98,11 +121,17 @@ impl MemDb {
 
   /// Retrieves collection by name.
   ///
-  /// ```ignore
-  /// use memquery::{doc, errors::Error, query, sync_memdb::MemDb};
+  /// ```
+  /// # #[cfg(feature = "sync")]
+  /// use memquery::{doc, errors::Error, memdb::MemDb, query};
   ///
-  /// let memdb = MemDb::new();
-  /// let coll = memdb.collection("TestCollection")?;
+  /// # #[cfg(feature = "sync")]
+  /// fn play() -> Result<(), Error> {
+  ///   let memdb = MemDb::new();
+  ///   memdb.create_collection("TestCollection");
+  ///   let coll = memdb.collection("TestCollection")?;
+  ///   Ok(())
+  /// }
   /// ```
   #[cfg(feature = "sync")]
   pub fn collection(&self, collection_name: &str) -> Result<Collection, Error> {
@@ -114,11 +143,18 @@ impl MemDb {
 
   /// Delete collection by name.
   ///
-  /// ```ignore
-  /// use memquery::{doc, errors::Error, query, sync_memdb::MemDb};
+  /// ```
+  /// # #[cfg(feature = "sync")]
+  /// use memquery::{doc, errors::Error, memdb::MemDb, query};
   ///
-  /// let memdb = MemDb::new();
-  /// let coll = memdb.delete_collection("TestCollection")?;
+  /// # #[cfg(feature = "sync")]
+  /// fn play() -> Result<(), Error> {
+  ///   let memdb = MemDb::new();
+  ///   memdb.create_collection("TestCollection");
+  ///   let coll = memdb.collection("TestCollection")?;
+  ///   let _ = memdb.delete_collection("TestCollection")?;
+  ///   Ok(())
+  /// }
   /// ```
   #[cfg(feature = "sync")]
   pub fn delete_collection(&self, name: &str) -> Result<Collection, Error> {

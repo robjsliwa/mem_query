@@ -10,56 +10,115 @@
 //!
 //! ## Create Database
 //!
-//! ```ignore
-//! use memquery::{doc, errors::Error, memdb::MemDb, query};
+//! ```rust
+//! # #[cfg(not(feature = "sync"))]
+//! use memquery::{errors::Error, memdb::MemDb};
 //!
-//! let memdb = MemDb::new();
-//! memdb.create_collection("TestCollection").await;
+//! # #[cfg(not(feature = "sync"))]
+//! # async fn play() -> Result<(), Error> {
+//!     let memdb = MemDb::new();
+//! #   Ok(())
+//! # }
 //! ```
 //!
 //! ## Create Collection
 //!
-//! ```ignore
-//! memdb.create_collection("TestCollection").await;
+//! ```rust
+//! # #[cfg(not(feature = "sync"))]
+//! use memquery::{errors::Error, memdb::MemDb};
+//!
+//! # #[cfg(not(feature = "sync"))]
+//! # async fn play() -> Result<(), Error> {
+//!     let memdb = MemDb::new();
+//!     memdb.create_collection("TestCollection").await;
+//! #   Ok(())
+//! # }
 //! ```
 //!
 //! ## Get Collection Handle
 //!
-//! ```ignore
-//! let coll = memdb.collection("TestCollection").await?;
+//! ```rust
+//! # #[cfg(not(feature = "sync"))]
+//! use memquery::{errors::Error, memdb::MemDb};
+//!
+//! # #[cfg(not(feature = "sync"))]
+//! # async fn play() -> Result<(), Error> {
+//! #   let memdb = MemDb::new();
+//! #   memdb.create_collection("TestCollection").await;
+//!     let coll = memdb.collection("TestCollection").await?;
+//! #   Ok(())
+//! # }
 //! ```
 //!
 //! ## Insert Document
 //!
-//! ```ignore
-//! coll.insert(doc!({ "name": "Tom", "age": 25 })).await?;
+//! ```rust
+//! # #[cfg(not(feature = "sync"))]
+//! use memquery::{errors::Error, memdb::MemDb, doc};
+//!
+//! # #[cfg(not(feature = "sync"))]
+//! # async fn play() -> Result<(), Error> {
+//! #   let memdb = MemDb::new();
+//! #   memdb.create_collection("TestCollection").await;
+//!     let coll = memdb.collection("TestCollection").await?;
+//!     coll.insert(doc!({ "name": "Tom", "age": 25 })).await?;
+//! #   Ok(())
+//! # }
 //! ```
 //!
 //! ## Find Document
 //!
-//! ```ignore
-//! let docs = coll.find(query!({"name": "Tom", "age": 25})).await?;
+//! ```rust
+//! # #[cfg(not(feature = "sync"))]
+//! use memquery::{errors::Error, memdb::MemDb, doc, query};
 //!
-//! assert_eq!(docs.len(), 1);
-//! assert_eq!(docs[0]["name"], "Tom");
+//! # #[cfg(not(feature = "sync"))]
+//! # async fn play() -> Result<(), Error> {
+//! #   let memdb = MemDb::new();
+//! #   memdb.create_collection("TestCollection").await;
+//!     let coll = memdb.collection("TestCollection").await?;
+//!     coll.insert(doc!({ "name": "Tom", "age": 25 })).await?;
+//!     let docs = coll.find(query!({"name": "Tom", "age": 25})).await?;
+//! #   Ok(())
+//! # }
 //! ```
 //!
 //! ## Logical Query Operators
 //!
 //! ### $and
 //!
-//! ```ignore
-//! let docs = coll
-//!     .find(query!({ "$and": [{ "name": "Bob" }, { "age": 20 }] }))
-//!     .await?;
+//! ```rust
+//! # #[cfg(not(feature = "sync"))]
+//! use memquery::{errors::Error, memdb::MemDb, query};
+//!
+//! # #[cfg(not(feature = "sync"))]
+//! # async fn play() -> Result<(), Error> {
+//! #   let memdb = MemDb::new();
+//! #   memdb.create_collection("TestCollection").await;
+//! #   let coll = memdb.collection("TestCollection").await?;
+//!     let docs = coll
+//!         .find(query!({ "$and": [{ "name": "Bob" }, { "age": 20 }] }))
+//!         .await?;
+//! #   Ok(())
+//! # }
 //! ```
 //!
 //! ### $or
 //!
-//! ```ignore
-//! let docs = coll
-//!     .find(query!({ "$or": [{ "name": "Bob" }, { "age": 30 }] }))
-//!     .await?;
+//! ```rust
+//! # #[cfg(not(feature = "sync"))]
+//! use memquery::{errors::Error, memdb::MemDb, query};
+//!
+//! # #[cfg(not(feature = "sync"))]
+//! # async fn play() -> Result<(), Error> {
+//! #   let memdb = MemDb::new();
+//! #   memdb.create_collection("TestCollection").await;
+//! #   let coll = memdb.collection("TestCollection").await?;
+//!     let docs = coll
+//!       .find(query!({ "$or": [{ "name": "Bob" }, { "age": 30 }] }))
+//!       .await?;
+//! #   Ok(())
+//! # }
 //! ```
 //!
 //! ## Comparison Query Operators
@@ -68,104 +127,194 @@
 //!
 //! Compare on field:
 //!
-//! ```ignore
-//! let docs = coll.find(query!({ "qty": { "$eq": 20 } })).await?;
+//! ```rust
+//! # #[cfg(not(feature = "sync"))]
+//! use memquery::{errors::Error, memdb::MemDb, query};
+//!
+//! # #[cfg(not(feature = "sync"))]
+//! # async fn play() -> Result<(), Error> {
+//! #   let memdb = MemDb::new();
+//! #   memdb.create_collection("TestCollection").await;
+//! #   let coll = memdb.collection("TestCollection").await?;
+//!     let docs = coll.find(query!({ "qty": { "$eq": 20 } })).await?;
+//! #   Ok(())
+//! # }
 //! ```
 //!
 //! Or in embedded document:
 //!
-//! ```ignore
-//! let docs = coll.find(query!({ "item.name": { "$eq": "ab" } })).await?;
+//! ```rust
+//! # #[cfg(not(feature = "sync"))]
+//! use memquery::{errors::Error, memdb::MemDb, query};
+//!
+//! # #[cfg(not(feature = "sync"))]
+//! # async fn play() -> Result<(), Error> {
+//! #   let memdb = MemDb::new();
+//! #   memdb.create_collection("TestCollection").await;
+//! #   let coll = memdb.collection("TestCollection").await?;
+//!     let docs = coll.find(query!({ "item.name": { "$eq": "ab" } })).await?;
+//! #   Ok(())
+//! # }
 //! ```
 //!
 //! You can also compare array with embedded arrays:
 //!
-//! ```ignore
-//! coll
-//!     .insert(doc!({ "item": { "name": "ab", "code": "123" }, "qty": 15, "tags": [ "A", "B", "C" ] }))
-//!     .await?;
-//!   coll
-//!     .insert(doc!({ "item": { "name": "cd", "code": "123" }, "qty": 20, "tags": [ "B" ] }))
-//!     .await?;
-//!   coll
-//!     .insert(doc!({ "item": { "name": "ij", "code": "456" }, "qty": 25, "tags": [ "A", "B" ] }))
-//!     .await?;
-//!   coll
-//!     .insert(doc!({ "item": { "name": "xy", "code": "456" }, "qty": 30, "tags": [ "B", "A" ] }))
-//!     .await?;
-//!   coll
-//!     .insert(
-//!       doc!({ "item": { "name": "mn", "code": "000" }, "qty": 20, "tags": [ [ "A", "B" ], "C" ] }),
-//!     )
-//!     .await?;
+//! ```rust
+//! # #[cfg(not(feature = "sync"))]
+//! use memquery::{errors::Error, memdb::MemDb, doc, query};
 //!
-//!   let docs = coll
-//!     .find(query!({ "tags": { "$eq": [ "A", "B" ] } }))
-//!     .await?;
+//! # #[cfg(not(feature = "sync"))]
+//! # async fn play() -> Result<(), Error> {
+//! #   let memdb = MemDb::new();
+//! #   memdb.create_collection("TestCollection").await;
+//! #   let coll = memdb.collection("TestCollection").await?;
+//!     coll
+//!       .insert(doc!({ "item": { "name": "ab", "code": "123" }, "qty": 15, "tags": [ "A", "B", "C" ] }))
+//!       .await?;
+//!     coll
+//!       .insert(doc!({ "item": { "name": "cd", "code": "123" }, "qty": 20, "tags": [ "B" ] }))
+//!       .await?;
+//!     coll
+//!       .insert(doc!({ "item": { "name": "ij", "code": "456" }, "qty": 25, "tags": [ "A", "B" ] }))
+//!       .await?;
+//!     coll
+//!       .insert(doc!({ "item": { "name": "xy", "code": "456" }, "qty": 30, "tags": [ "B", "A" ] }))
+//!       .await?;
+//!     coll
+//!       .insert(
+//!         doc!({ "item": { "name": "mn", "code": "000" }, "qty": 20, "tags": [ [ "A", "B" ], "C" ] }),
+//!       )
+//!       .await?;
 //!
-//!   assert_eq!(docs.len(), 2);
-//!   assert_eq!(docs[0]["item"]["name"], "ij");
-//!   assert_eq!(docs[1]["item"]["name"], "mn");
+//!     let docs = coll
+//!       .find(query!({ "tags": { "$eq": [ "A", "B" ] } }))
+//!       .await?;
+//!
+//!     assert_eq!(docs.len(), 2);
+//!     assert_eq!(docs[0]["item"]["name"], "ij");
+//!     assert_eq!(docs[1]["item"]["name"], "mn");
+//! #   Ok(())
+//! # }
 //! ```
 //!
 //! Or value in the embedded array:
 //!
-//! ```ignore
-//! coll
-//!     .insert(doc!({ "item": { "name": "ab", "code": "123" }, "qty": 15, "tags": [ "A", "B", "C" ] }))
-//!     .await?;
-//!   coll
-//!     .insert(doc!({ "item": { "name": "cd", "code": "123" }, "qty": 20, "tags": [ "B" ] }))
-//!     .await?;
-//!   coll
-//!     .insert(doc!({ "item": { "name": "ij", "code": "456" }, "qty": 25, "tags": [ "A", "B" ] }))
-//!     .await?;
-//!   coll
-//!     .insert(doc!({ "item": { "name": "xy", "code": "456" }, "qty": 30, "tags": [ "B", "A" ] }))
-//!     .await?;
-//!   coll
-//!     .insert(
-//!       doc!({ "item": { "name": "mn", "code": "000" }, "qty": 20, "tags": [ [ "A", "B" ], "C" ] }),
-//!     )
-//!     .await?;
+//! ```rust
+//! # #[cfg(not(feature = "sync"))]
+//! use memquery::{errors::Error, memdb::MemDb, doc, query};
 //!
-//!   let docs = coll.find(query!({ "tags": { "$eq": "B" } })).await?;
+//! # #[cfg(not(feature = "sync"))]
+//! # async fn play() -> Result<(), Error> {
+//! #   let memdb = MemDb::new();
+//! #   memdb.create_collection("TestCollection").await;
+//! #   let coll = memdb.collection("TestCollection").await?;
+//!     coll
+//!       .insert(doc!({ "item": { "name": "ab", "code": "123" }, "qty": 15, "tags": [ "A", "B", "C" ] }))
+//!       .await?;
+//!     coll
+//!       .insert(doc!({ "item": { "name": "cd", "code": "123" }, "qty": 20, "tags": [ "B" ] }))
+//!       .await?;
+//!     coll
+//!       .insert(doc!({ "item": { "name": "ij", "code": "456" }, "qty": 25, "tags": [ "A", "B" ] }))
+//!       .await?;
+//!     coll
+//!       .insert(doc!({ "item": { "name": "xy", "code": "456" }, "qty": 30, "tags": [ "B", "A" ] }))
+//!       .await?;
+//!     coll
+//!       .insert(
+//!         doc!({ "item": { "name": "mn", "code": "000" }, "qty": 20, "tags": [ [ "A", "B" ], "C" ] }),
+//!       )
+//!       .await?;
 //!
-//!   assert_eq!(docs.len(), 4);
-//!   assert_eq!(docs[0]["item"]["name"], "ab");
-//!   assert_eq!(docs[1]["item"]["name"], "cd");
-//!   assert_eq!(docs[2]["item"]["name"], "ij");
-//!   assert_eq!(docs[3]["item"]["name"], "xy");
+//!     let docs = coll.find(query!({ "tags": { "$eq": "B" } })).await?;
+//!
+//!     assert_eq!(docs.len(), 4);
+//!     assert_eq!(docs[0]["item"]["name"], "ab");
+//!     assert_eq!(docs[1]["item"]["name"], "cd");
+//!     assert_eq!(docs[2]["item"]["name"], "ij");
+//!     assert_eq!(docs[3]["item"]["name"], "xy");
+//! #   Ok(())
+//! # }
 //! ```
 //!
 //! ### $gt
 //!
-//! ```ignore
-//! let docs = coll.find(query!({ "qty": { "$gt": 20 } })).await?;
+//! ```rust
+//! # #[cfg(not(feature = "sync"))]
+//! use memquery::{errors::Error, memdb::MemDb, query};
+//!
+//! # #[cfg(not(feature = "sync"))]
+//! # async fn play() -> Result<(), Error> {
+//! #   let memdb = MemDb::new();
+//! #   memdb.create_collection("TestCollection").await;
+//! #   let coll = memdb.collection("TestCollection").await?;
+//!     let docs = coll.find(query!({ "qty": { "$gt": 20 } })).await?;
+//! #   Ok(())
+//! # }
 //! ```
 //!
 //! ### $gte
 //!
-//! ```ignore
-//! let docs = coll.find(query!({ "qty": { "$gte": 20 } })).await?;
+//! ```rust
+//! # #[cfg(not(feature = "sync"))]
+//! use memquery::{errors::Error, memdb::MemDb, query};
+//!
+//! # #[cfg(not(feature = "sync"))]
+//! # async fn play() -> Result<(), Error> {
+//! #   let memdb = MemDb::new();
+//! #   memdb.create_collection("TestCollection").await;
+//! #   let coll = memdb.collection("TestCollection").await?;
+//!     let docs = coll.find(query!({ "qty": { "$gte": 20 } })).await?;
+//! #   Ok(())
+//! # }
 //! ```
 //!
 //! ### $lt
 //!
-//! ```ignore
-//! let docs = coll.find(query!({ "qty": { "$lt": 20 } })).await?;
+//! ```rust
+//! # #[cfg(not(feature = "sync"))]
+//! use memquery::{errors::Error, memdb::MemDb, query};
+//!
+//! # #[cfg(not(feature = "sync"))]
+//! # async fn play() -> Result<(), Error> {
+//! #   let memdb = MemDb::new();
+//! #   memdb.create_collection("TestCollection").await;
+//! #   let coll = memdb.collection("TestCollection").await?;
+//!     let docs = coll.find(query!({ "qty": { "$lt": 20 } })).await?;
+//! #   Ok(())
+//! # }
 //! ```
 //!
 //! ### $lte
 //!
-//! ```ignore
-//! let docs = coll.find(query!({ "qty": { "$lte": 20 } })).await?;
+//! ```rust
+//! # #[cfg(not(feature = "sync"))]
+//! use memquery::{errors::Error, memdb::MemDb, query};
+//!
+//! # #[cfg(not(feature = "sync"))]
+//! # async fn play() -> Result<(), Error> {
+//! #   let memdb = MemDb::new();
+//! #   memdb.create_collection("TestCollection").await;
+//! #   let coll = memdb.collection("TestCollection").await?;
+//!     let docs = coll.find(query!({ "qty": { "$lte": 20 } })).await?;
+//! #   Ok(())
+//! # }
 //! ```
 //!
 //! ### Find All Documents
 //!
-//! ```ignore
-//! let docs = coll.find(query!({})).await?;
+//! ```rust
+//! # #[cfg(not(feature = "sync"))]
+//! use memquery::{errors::Error, memdb::MemDb, query};
+//!
+//! # #[cfg(not(feature = "sync"))]
+//! # async fn play() -> Result<(), Error> {
+//! #   let memdb = MemDb::new();
+//! #   memdb.create_collection("TestCollection").await;
+//! #   let coll = memdb.collection("TestCollection").await?;
+//!     let docs = coll.find(query!({})).await?;
+//! #   Ok(())
+//! # }
 //! ```
 //!
 //! ## Update Document
@@ -174,177 +323,224 @@
 //!
 //! Update document by replacing entire document:
 //!
-//! ```ignore
-//! let memdb = MemDb::new();
-//! memdb.create_collection("TestCollection").await;
-//! let coll = memdb.collection("TestCollection").await?;
-//! coll.insert(doc!({ "name": "Rob", "age": 25 })).await?;
-//! coll.insert(doc!({ "name": "Bob", "age": 20 })).await?;
-//! coll.insert(doc!({ "name": "Tom", "age": 30 })).await?;
+//! ```rust
+//! # #[cfg(not(feature = "sync"))]
+//! use memquery::{errors::Error, memdb::MemDb, doc, query, update};
 //!
-//! let docs_updated = coll
-//!   .find_and_update(
-//!     query!({"name": "Bob"}),
-//!     update!({"nickname": "Bobcat", "voice": "meow"}),
-//!   )
-//!   .await?;
+//! # #[cfg(not(feature = "sync"))]
+//! # async fn play() -> Result<(), Error> {
+//! #   let memdb = MemDb::new();
+//! #   memdb.create_collection("TestCollection").await;
+//! #   let coll = memdb.collection("TestCollection").await?;
+//!     coll.insert(doc!({ "name": "Rob", "age": 25 })).await?;
+//!     coll.insert(doc!({ "name": "Bob", "age": 20 })).await?;
+//!     coll.insert(doc!({ "name": "Tom", "age": 30 })).await?;
 //!
-//! assert_eq!(docs_updated, 1);
+//!     let docs_updated = coll
+//!       .find_and_update(
+//!         query!({"name": "Bob"}),
+//!         update!({"nickname": "Bobcat", "voice": "meow"}),
+//!       )
+//!     .await?;
 //!
-//! let docs = coll.find(query!({"nickname": "Bobcat"})).await?;
-//! assert_eq!(docs.len(), 1);
-//! assert_eq!(docs[0]["voice"], "meow");
+//!     assert_eq!(docs_updated, 1);
+//!
+//!     let docs = coll.find(query!({"nickname": "Bobcat"})).await?;
+//!     assert_eq!(docs.len(), 1);
+//!     assert_eq!(docs[0]["voice"], "meow");
+//! #   Ok(())
+//! # }
 //! ```
 //!
 //! Update specific field(s) in the document:
 //!
-//! ```ignore
-//! let coll = memdb.collection("TestCollection").await?;
-//! coll.insert(doc!({ "name": "Rob", "age": 25 })).await?;
-//! coll.insert(doc!({ "name": "Bob", "age": 20 })).await?;
-//! coll.insert(doc!({ "name": "Tom", "age": 30 })).await?;
+//! ```rust
+//! # #[cfg(not(feature = "sync"))]
+//! use memquery::{errors::Error, memdb::MemDb, doc, query, update};
 //!
-//! let docs_updated = coll
-//!   .find_and_update(
-//!     query!({"name": "Bob"}),
-//!     update!({"$set": { "name": "Roy", "age": 21, "email": "test@test.com"}}),
-//!   )
-//!   .await?;
+//! # #[cfg(not(feature = "sync"))]
+//! # async fn play() -> Result<(), Error> {
+//! #   let memdb = MemDb::new();
+//! #   memdb.create_collection("TestCollection").await;
+//! #   let coll = memdb.collection("TestCollection").await?;
+//!     coll.insert(doc!({ "name": "Rob", "age": 25 })).await?;
+//!     coll.insert(doc!({ "name": "Bob", "age": 20 })).await?;
+//!     coll.insert(doc!({ "name": "Tom", "age": 30 })).await?;
 //!
-//! assert_eq!(docs_updated, 1);
+//!     let docs_updated = coll
+//!       .find_and_update(
+//!         query!({"name": "Bob"}),
+//!         update!({"$set": { "name": "Roy", "age": 21, "email": "test@test.com"}}),
+//!       )
+//!       .await?;
 //!
-//! let docs = coll.find(query!({"name": "Roy"})).await?;
-//! assert_eq!(docs.len(), 1);
-//! assert_eq!(docs[0]["age"], 21);
-//! assert_eq!(docs[0]["email"], "test@test.com");
+//!     assert_eq!(docs_updated, 1);
+//!
+//!     let docs = coll.find(query!({"name": "Roy"})).await?;
+//!     assert_eq!(docs.len(), 1);
+//!     assert_eq!(docs[0]["age"], 21);
+//!     assert_eq!(docs[0]["email"], "test@test.com");
+//! #   Ok(())
+//! # }
 //! ```
 //!
 //! Update document to remove field:
 //!
-//! ```ignore
-//! let memdb = MemDb::new();
-//! memdb.create_collection("TestCollection").await;
-//! let coll = memdb.collection("TestCollection").await?;
-//! coll.insert(doc!({ "name": "Rob", "age": 25 })).await?;
-//! coll.insert(doc!({ "name": "Bob", "age": 20 })).await?;
-//! coll.insert(doc!({ "name": "Tom", "age": 30 })).await?;
+//! ```rust
+//! # #[cfg(not(feature = "sync"))]
+//! use memquery::{errors::Error, memdb::MemDb, doc, query, update};
 //!
-//! let docs_updated = coll
-//!   .find_and_update(
-//!     query!({ "name": "Bob" }),
-//!     update!({ "$set": { "name": "Roy", "age": 21, "email": "test@test.com" }}),
-//!   )
-//!   .await?;
+//! # #[cfg(not(feature = "sync"))]
+//! # async fn play() -> Result<(), Error> {
+//! #   let memdb = MemDb::new();
+//! #   memdb.create_collection("TestCollection").await;
+//! #   let coll = memdb.collection("TestCollection").await?;
+//!     coll.insert(doc!({ "name": "Rob", "age": 25 })).await?;
+//!     coll.insert(doc!({ "name": "Bob", "age": 20 })).await?;
+//!     coll.insert(doc!({ "name": "Tom", "age": 30 })).await?;
 //!
-//! assert_eq!(docs_updated, 1);
+//!     let docs_updated = coll
+//!       .find_and_update(
+//!         query!({ "name": "Bob" }),
+//!         update!({ "$set": { "name": "Roy", "age": 21, "email": "test@test.com" }}),
+//!       )
+//!       .await?;
 //!
-//! let docs = coll.find(query!({"name": "Roy"})).await?;
-//! assert_eq!(docs.len(), 1);
-//! assert_eq!(docs[0]["age"], 21);
-//! assert_eq!(docs[0]["email"], "test@test.com");
+//!     assert_eq!(docs_updated, 1);
 //!
-//! let docs_updated2 = coll
-//!   .find_and_update(
-//!     query!({ "name": "Roy" }),
-//!     update!({ "$unset": { "email": "" }}),
-//!   )
-//!   .await?;
+//!     let docs = coll.find(query!({"name": "Roy"})).await?;
+//!     assert_eq!(docs.len(), 1);
+//!     assert_eq!(docs[0]["age"], 21);
+//!     assert_eq!(docs[0]["email"], "test@test.com");
 //!
-//! assert_eq!(docs_updated2, 1);
+//!     let docs_updated2 = coll
+//!       .find_and_update(
+//!         query!({ "name": "Roy" }),
+//!         update!({ "$unset": { "email": "" }}),
+//!       )
+//!     .await?;
 //!
-//! let docs = coll.find(query!({"name": "Roy"})).await?;
-//! assert_eq!(docs.len(), 1);
-//! assert_eq!(docs[0]["age"], 21);
-//! assert_eq!(docs[0]["email"], serde_json::Value::Null);
+//!     assert_eq!(docs_updated2, 1);
+//!
+//!     let docs = coll.find(query!({"name": "Roy"})).await?;
+//!     assert_eq!(docs.len(), 1);
+//!     assert_eq!(docs[0]["age"], 21);
+//!     assert_eq!(docs[0]["email"], serde_json::Value::Null);
+//! #   Ok(())
+//! # }
 //! ```
 //!
 //! Increment value of the field in the document:
 //!
-//! ```ignore
-//! let memdb = MemDb::new();
-//! memdb.create_collection("TestCollection").await;
-//! let coll = memdb.collection("TestCollection").await?;
-//! coll.insert(doc!({ "name": "Rob", "age": 25 })).await?;
-//! coll.insert(doc!({ "name": "Bob", "age": 20 })).await?;
-//! coll.insert(doc!({ "name": "Tom", "age": 30 })).await?;
+//! ```rust
+//! # #[cfg(not(feature = "sync"))]
+//! use memquery::{errors::Error, memdb::MemDb, doc, query, update};
 //!
-//! let docs_updated = coll
-//!   .find_and_update(query!({"name": "Bob"}), update!({"$inc": { "age": -5 }}))
-//!   .await?;
+//! # #[cfg(not(feature = "sync"))]
+//! # async fn play() -> Result<(), Error> {
+//! #   let memdb = MemDb::new();
+//! #   memdb.create_collection("TestCollection").await;
+//! #   let coll = memdb.collection("TestCollection").await?;
+//!     coll.insert(doc!({ "name": "Rob", "age": 25 })).await?;
+//!     coll.insert(doc!({ "name": "Bob", "age": 20 })).await?;
+//!     coll.insert(doc!({ "name": "Tom", "age": 30 })).await?;
 //!
-//! assert_eq!(docs_updated, 1);
+//!     let docs_updated = coll
+//!       .find_and_update(query!({"name": "Bob"}), update!({"$inc": { "age": -5 }}))
+//!       .await?;
 //!
-//! let docs = coll.find(query!({"name": "Bob"})).await?;
-//! assert_eq!(docs.len(), 1);
-//! assert_eq!(docs[0]["age"], 15.0);
+//!     assert_eq!(docs_updated, 1);
+//!
+//!     let docs = coll.find(query!({"name": "Bob"})).await?;
+//!     assert_eq!(docs.len(), 1);
+//!     assert_eq!(docs[0]["age"], 15.0);
+//! #   Ok(())
+//! # }
 //! ```
 //!
 //! Multiply value of a field in the document:
 //!
-//! ```ignore
-//! let memdb = MemDb::new();
-//! memdb.create_collection("TestCollection").await;
-//! let coll = memdb.collection("TestCollection").await?;
-//! coll.insert(doc!({ "name": "Rob", "age": 25 })).await?;
-//! coll.insert(doc!({ "name": "Bob", "age": 20 })).await?;
-//! coll.insert(doc!({ "name": "Tom", "age": 30 })).await?;
+//! ```rust
+//! # #[cfg(not(feature = "sync"))]
+//! use memquery::{errors::Error, memdb::MemDb, doc, query, update};
 //!
-//! let docs_updated = coll
-//!   .find_and_update(query!({"name": "Bob"}), update!({"$mul": { "age": 5}}))
-//!   .await?;
+//! # #[cfg(not(feature = "sync"))]
+//! # async fn play() -> Result<(), Error> {
+//! #   let memdb = MemDb::new();
+//! #   memdb.create_collection("TestCollection").await;
+//! #   let coll = memdb.collection("TestCollection").await?;
+//!     coll.insert(doc!({ "name": "Rob", "age": 25 })).await?;
+//!     coll.insert(doc!({ "name": "Bob", "age": 20 })).await?;
+//!     coll.insert(doc!({ "name": "Tom", "age": 30 })).await?;
 //!
-//! assert_eq!(docs_updated, 1);
+//!     let docs_updated = coll
+//!       .find_and_update(query!({"name": "Bob"}), update!({"$mul": { "age": 5}}))
+//!       .await?;
 //!
-//! let docs = coll.find(query!({"name": "Bob"})).await?;
-//! assert_eq!(docs.len(), 1);
-//! assert_eq!(docs[0]["age"], 100.0);
+//!     assert_eq!(docs_updated, 1);
+//!
+//!     let docs = coll.find(query!({"name": "Bob"})).await?;
+//!     assert_eq!(docs.len(), 1);
+//!     assert_eq!(docs[0]["age"], 100.0);
+//! #   Ok(())
+//! # }
 //! ```
 //!
 //! # Delete Documents
 //!
-//! ```ignore
-//! let memdb = MemDb::new();
-//! memdb.create_collection("TestCollection").await;
-//! let coll = memdb.collection("TestCollection").await?;
-//! coll.insert(doc!({ "name": "Rob", "age": 25 })).await?;
-//! coll.insert(doc!({ "name": "Bob", "age": 20 })).await?;
-//! coll.insert(doc!({ "name": "Tom", "age": 30 })).await?;
+//! ```rust
+//! # #[cfg(not(feature = "sync"))]
+//! use memquery::{errors::Error, memdb::MemDb, doc, query};
 //!
-//! let docs = coll.find_and_delete(query!({})).await?;
-//! assert_eq!(docs.len(), 3);
+//! # #[cfg(not(feature = "sync"))]
+//! # async fn play() -> Result<(), Error> {
+//! #   let memdb = MemDb::new();
+//! #   memdb.create_collection("TestCollection").await;
+//! #   let coll = memdb.collection("TestCollection").await?;
+//!     coll.insert(doc!({ "name": "Rob", "age": 25 })).await?;
+//!     coll.insert(doc!({ "name": "Bob", "age": 20 })).await?;
+//!     coll.insert(doc!({ "name": "Tom", "age": 30 })).await?;
 //!
-//! let docs_remaining = coll.find(query!({})).await?;
-//! assert_eq!(docs_remaining.len(), 0);
+//!     let docs = coll.find_and_delete(query!({})).await?;
+//!     assert_eq!(docs.len(), 3);
+//!
+//!     let docs_remaining = coll.find(query!({})).await?;
+//!     assert_eq!(docs_remaining.len(), 0);
+//! #   Ok(())
+//! # }
 //! ```
 //!
 //! # Sync API
 //!
-//! The sync API are found in `sync_memdb` and `sync_collection` modules.  To use sync API you need to enable it using `sync` feature flag.
+//! To use sync API you need to enable it using `sync` feature flag.
 //!
-//! ```ignore
-//! use memquery::{doc, errors::Error, query, sync_memdb::MemDb};
+//! ```
+//! # #[cfg(feature = "sync")]
+//! use memquery::{doc, errors::Error, query, memdb::MemDb};
 //!
+//! # #[cfg(feature = "sync")]
+//! # fn play() -> Result<(), Error> {
+//! #   let memdb = MemDb::new();
+//! #   memdb.create_collection("TestCollection");
+//! #   let coll = memdb.collection("TestCollection")?;
+//!     coll.insert(
+//!       doc!({ "item": { "name": "ab", "code": 123 }, "qty": 15, "tags": [ "A", "B", "C" ] }),
+//!     )?;
+//!     coll.insert(doc!({ "item": { "name": "cd", "code": 123 }, "qty": 20, "tags": [ "B" ] }))?;
+//!     coll.insert(doc!({ "item": { "name": "ij", "code": 456 }, "qty": 25, "tags": [ "A", "B" ] }))?;
+//!     coll.insert(doc!({ "item": { "name": "xy", "code": 456 }, "qty": 30, "tags": [ "B", "A" ] }))?;
+//!     coll.insert(
+//!       doc!({ "item": { "name": "mn", "code": 000 }, "qty": 20, "tags": [ [ "A", "B" ], "C" ] }),
+//!     )?;
 //!
+//!     let docs = coll.find(query!({ "item.code": { "$lte": 123 } }))?;
 //!
-//! let memdb = MemDb::new();
-//! memdb.create_collection("TestCollection");
-//! let coll = memdb.collection("TestCollection")?;
-//! coll.insert(
-//!   doc!({ "item": { "name": "ab", "code": 123 }, "qty": 15, "tags": [ "A", "B", "C" ] }),
-//! )?;
-//! coll.insert(doc!({ "item": { "name": "cd", "code": 123 }, "qty": 20, "tags": [ "B" ] }))?;
-//! coll.insert(doc!({ "item": { "name": "ij", "code": 456 }, "qty": 25, "tags": [ "A", "B" ] }))?;
-//! coll.insert(doc!({ "item": { "name": "xy", "code": 456 }, "qty": 30, "tags": [ "B", "A" ] }))?;
-//! coll.insert(
-//!   doc!({ "item": { "name": "mn", "code": 000 }, "qty": 20, "tags": [ [ "A", "B" ], "C" ] }),
-//! )?;
-//!
-//! let docs = coll.find(query!({ "item.code": { "$lte": 123 } }))?;
-//!
-//! assert_eq!(docs.len(), 3);
-//! assert_eq!(docs[0]["item"]["name"], "ab");
-//! assert_eq!(docs[1]["item"]["name"], "cd");
-//! assert_eq!(docs[2]["item"]["name"], "mn");
+//!     assert_eq!(docs.len(), 3);
+//!     assert_eq!(docs[0]["item"]["name"], "ab");
+//!     assert_eq!(docs[1]["item"]["name"], "cd");
+//!     assert_eq!(docs[2]["item"]["name"], "mn");
+//! #   Ok(())
+//! # }
 //! ```
 pub mod collection;
 mod engine;

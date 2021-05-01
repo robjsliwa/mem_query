@@ -324,7 +324,7 @@ assert_eq!(docs_remaining.len(), 0);
 
 # Sync API
 
-The sync API are found in `sync_memdb` and `sync_collection` modules.  To use sync API you need to enable it using `sync` feature flag.
+To use sync API you need to enable it using `sync` feature flag.
 
 ```
 use memquery::{doc, errors::Error, query, sync_memdb::MemDb};

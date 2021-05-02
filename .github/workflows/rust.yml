@@ -46,7 +46,7 @@ jobs:
       - name: Unit tests
         run: cd languages/python && python -m unittest
       - name: Create wheel
-        run: pip install wheel && python setup.py sdist bdist_wheel
+        run: cd languages/python && pip install wheel && python setup.py sdist bdist_wheel
       - name: Copy WASM to Go folder
         run: cp wasm/target/wasm32-unknown-unknown/debug/wsmemquery.wasm languages/golang/memquery/
       - name: Setup golang
@@ -74,4 +74,4 @@ jobs:
     - name: cargo publish
       run: cargo publish --token ${{ env.CARGO_TOKEN }}
     - name: pypi publish
-      run: pip install twine && twine upload dist/*
+      run: cd languages/python && pip install twine && twine upload dist/*

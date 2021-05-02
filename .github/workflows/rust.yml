@@ -30,8 +30,10 @@ jobs:
         run: cargo t --verbose --features "sync"
       - name: Build WASM
         run: rustup target add wasm32-unknown-unknown && cd wasm && cargo build --target wasm32-unknown-unknown
+      - name: Build WASM release
+        run: cd wasm && cargo build --target wasm32-unknown-unknown --release
       - name: Copy WASM to Python folder
-        run: cp wasm/target/wasm32-unknown-unknown/debug/wsmemquery.wasm languages/python/
+        run: cp wasm/target/wasm32-unknown-unknown/release/wsmemquery.wasm languages/python/
       - name: Set up Python 3.x
         uses: actions/setup-python@v2
         with:
@@ -43,6 +45,8 @@ jobs:
         run: cd languages/python && pip install -r requirements.txt
       - name: Unit tests
         run: cd languages/python && python -m unittest
+      - name: Create wheel
+        run: pip install wheel && python setup.py sdist bdist_wheel
       - name: Copy WASM to Go folder
         run: cp wasm/target/wasm32-unknown-unknown/debug/wsmemquery.wasm languages/golang/memquery/
       - name: Setup golang
@@ -69,3 +73,5 @@ jobs:
     - uses: actions/checkout@v2
     - name: cargo publish
       run: cargo publish --token ${{ env.CARGO_TOKEN }}
+    - name: pypi publish
+      run: pip install twine && twine upload dist/*

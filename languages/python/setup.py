@@ -1,4 +1,5 @@
 import pathlib
+import os
 from setuptools import setup
 
 # The directory containing this file
@@ -34,15 +35,11 @@ setup(
     classifiers=[
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
-        "Topic :: inmemory",
-        "Topic :: query",
-        "Topic:: database",
-        "Topic :: json",
-        "Topic :: nosql"
+        "Programming Language :: Python :: 3.7"
     ],
-    packages=["memquery"],
+    keywords = "inmemory query database json nosql",
+    packages=["memquery", "errors", "membind"],
     include_package_data=True,
-    install_requires=["feedparser", "html2text"],
+    install_requires=["wasmtime==0.25.0"],
     entry_points="",
 )
